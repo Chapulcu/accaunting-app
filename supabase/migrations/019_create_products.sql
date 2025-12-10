@@ -1,5 +1,5 @@
 -- Ürün Kategorileri Tablosu
-CREATE TABLE product_categories (
+CREATE TABLE IF NOT EXISTS product_categories (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE product_categories (
 );
 
 -- Ürünler Tablosu
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     category_id INTEGER REFERENCES product_categories(id) ON DELETE SET NULL,
@@ -38,14 +38,14 @@ CREATE TABLE products (
 );
 
 -- Indexes
-CREATE INDEX idx_product_categories_user_id ON product_categories(user_id);
-CREATE INDEX idx_product_categories_name ON product_categories(name);
-CREATE INDEX idx_products_user_id ON products(user_id);
-CREATE INDEX idx_products_category_id ON products(category_id);
-CREATE INDEX idx_products_name ON products(name);
-CREATE INDEX idx_products_sku ON products(sku);
-CREATE INDEX idx_products_barcode ON products(barcode);
-CREATE INDEX idx_products_is_active ON products(is_active);
+CREATE INDEX IF NOT EXISTS idx_product_categories_user_id ON product_categories(user_id);
+CREATE INDEX IF NOT EXISTS idx_product_categories_name ON product_categories(name);
+CREATE INDEX IF NOT EXISTS idx_products_user_id ON products(user_id);
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
+CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode);
+CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
 
 -- RLS Policies - Product Categories
 ALTER TABLE product_categories ENABLE ROW LEVEL SECURITY;
@@ -78,11 +78,13 @@ CREATE POLICY "Users can delete own products" ON products
     FOR DELETE USING (user_id = auth.uid());
 
 -- Triggers
+DROP TRIGGER IF EXISTS update_product_categories_updated_at ON product_categories;
 CREATE TRIGGER update_product_categories_updated_at
     BEFORE UPDATE ON product_categories
     FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_products_updated_at ON products;
 CREATE TRIGGER update_products_updated_at
     BEFORE UPDATE ON products
     FOR EACH ROW
