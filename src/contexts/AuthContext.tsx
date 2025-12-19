@@ -4,6 +4,8 @@ import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '@/utils/error'
+import { OrganizationService } from '@/services/organizationService'
+import type { Organization, OrganizationMember } from '@/services/organizationService'
 
 interface Profile {
   id: string
@@ -18,11 +20,16 @@ interface AuthContextType {
   session: Session | null
   profile: Profile | null
   userRole: 'user' | 'accountant' | 'manager' | 'admin' | null
+  organization: Organization | null
+  organizationMember: OrganizationMember | null
+  organizationRole: 'owner' | 'admin' | 'accountant' | 'user' | null
   loading: boolean
   profileLoading: boolean
+  organizationLoading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, fullName: string) => Promise<void>
   signOut: () => Promise<void>
+  refreshOrganization: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -31,8 +38,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [organization, setOrganization] = useState<Organization | null>(null)
+  const [organizationMember, setOrganizationMember] = useState<OrganizationMember | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileLoading, setProfileLoading] = useState(false)
+  const [organizationLoading, setOrganizationLoading] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -86,6 +96,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     fetchProfile()
   }, [user])
+
+  // Fetch organization and membership when user changes
+  useEffect(() => {
+    async function fetchOrganization() {
+      if (!user) {
+        setOrganization(null)
+        setOrganizationMember(null)
+        setOrganizationLoading(false)
+        return
+      }
+
+      setOrganizationLoading(true)
+      try {
+        // Fetch current organization
+        const org = await OrganizationService.getCurrentOrganization()
+        setOrganization(org)
+
+        // Fetch membership info if organization exists
+        if (org) {
+          const { data: members } = await supabase
+            .from('organization_members')
+            .select('*')
+            .eq('organization_id', org.id)
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .single()
+
+          setOrganizationMember(members)
+        } else {
+          setOrganizationMember(null)
+        }
+      } catch (error) {
+        console.error('Error fetching organization:', error)
+        setOrganization(null)
+        setOrganizationMember(null)
+      } finally {
+        setOrganizationLoading(false)
+      }
+    }
+
+    fetchOrganization()
+  }, [user])
+
+  // Refresh organization data
+  const refreshOrganization = async () => {
+    if (!user) return
+
+    setOrganizationLoading(true)
+    try {
+      const org = await OrganizationService.getCurrentOrganization()
+      setOrganization(org)
+
+      if (org) {
+        const { data: members } = await supabase
+          .from('organization_members')
+          .select('*')
+          .eq('organization_id', org.id)
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single()
+
+        setOrganizationMember(members)
+      } else {
+        setOrganizationMember(null)
+      }
+    } catch (error) {
+      console.error('Error refreshing organization:', error)
+    } finally {
+      setOrganizationLoading(false)
+    }
+  }
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -160,11 +241,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     profile,
     userRole: profile?.role ?? null,
+    organization,
+    organizationMember,
+    organizationRole: organizationMember?.role ?? null,
     loading,
     profileLoading,
+    organizationLoading,
     signIn,
     signUp,
     signOut,
+    refreshOrganization,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

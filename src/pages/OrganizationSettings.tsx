@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
 import { Building2, Save, Loader2, Globe, Mail, Phone, MapPin, CreditCard, Calendar } from 'lucide-react'
-import { OrganizationService, UpdateOrganizationData } from '@/services/organizationService'
+import { OrganizationService } from '@/services/organizationService'
+import type { UpdateOrganizationData } from '@/services/organizationService'
 import Tooltip from '@/components/Tooltip'
 
 export default function OrganizationSettings() {
@@ -191,7 +192,7 @@ export default function OrganizationSettings() {
                 value={formData.name || ''}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
                 required
               />
             </div>
@@ -203,7 +204,7 @@ export default function OrganizationSettings() {
                 type="text"
                 value={organization.slug}
                 disabled
-                className="input bg-gray-100 dark:bg-slate-700 cursor-not-allowed"
+                className="input-field bg-gray-100 dark:bg-slate-700 cursor-not-allowed opacity-50"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Slug değiştirilemez
@@ -217,7 +218,7 @@ export default function OrganizationSettings() {
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
                 rows={3}
               />
             </div>
@@ -239,7 +240,7 @@ export default function OrganizationSettings() {
                 value={formData.tax_number || ''}
                 onChange={(e) => setFormData({ ...formData, tax_number: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -251,7 +252,7 @@ export default function OrganizationSettings() {
                 value={formData.tax_office || ''}
                 onChange={(e) => setFormData({ ...formData, tax_office: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -273,7 +274,7 @@ export default function OrganizationSettings() {
                 value={formData.email || ''}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -285,7 +286,7 @@ export default function OrganizationSettings() {
                 value={formData.phone || ''}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -299,7 +300,7 @@ export default function OrganizationSettings() {
                   value={formData.website || ''}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                   disabled={!isEditing}
-                  className="input pl-10"
+                  className="input-field pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="https://example.com"
                 />
               </div>
@@ -322,7 +323,7 @@ export default function OrganizationSettings() {
                 value={formData.address || ''}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
                 rows={2}
               />
             </div>
@@ -335,7 +336,7 @@ export default function OrganizationSettings() {
                 value={formData.city || ''}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -347,7 +348,7 @@ export default function OrganizationSettings() {
                 value={formData.postal_code || ''}
                 onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -359,7 +360,7 @@ export default function OrganizationSettings() {
                 value={formData.country || 'TR'}
                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -380,7 +381,7 @@ export default function OrganizationSettings() {
                 value={formData.currency || 'TRY'}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value as any })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="TRY">TRY - Türk Lirası</option>
                 <option value="USD">USD - Amerikan Doları</option>
@@ -398,7 +399,7 @@ export default function OrganizationSettings() {
                 value={formData.tax_rate || 20}
                 onChange={(e) => setFormData({ ...formData, tax_rate: parseFloat(e.target.value) })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -410,7 +411,7 @@ export default function OrganizationSettings() {
                 value={formData.invoice_prefix || 'INV'}
                 onChange={(e) => setFormData({ ...formData, invoice_prefix: e.target.value })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="INV"
               />
             </div>
@@ -422,7 +423,7 @@ export default function OrganizationSettings() {
                 value={formData.fiscal_year_start || 1}
                 onChange={(e) => setFormData({ ...formData, fiscal_year_start: parseInt(e.target.value) })}
                 disabled={!isEditing}
-                className="input"
+                className="input-field disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
                   <option key={month} value={month}>

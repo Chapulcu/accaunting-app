@@ -34,6 +34,10 @@ import RolesPermissions from '@/pages/RolesPermissions'
 import UsersManagement from '@/pages/UsersManagement'
 import Reminders from '@/pages/Reminders'
 import ApprovalWorkflows from '@/pages/ApprovalWorkflows'
+import OrganizationSettings from '@/pages/OrganizationSettings'
+import OrganizationMembers from '@/pages/OrganizationMembers'
+import AcceptInvitation from '@/pages/AcceptInvitation'
+import N8nWorkflows from '@/pages/automation/N8nWorkflows'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +80,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/accept-invitation" element={<AcceptInvitation />} />
             <Route
               path="/"
               element={
@@ -112,6 +117,9 @@ function App() {
               <Route path="users-management" element={<UsersManagement />} />
               <Route path="approval-workflows" element={<ApprovalWorkflows />} />
               <Route path="reminders" element={<Reminders />} />
+              <Route path="organization-settings" element={<OrganizationSettings />} />
+              <Route path="organization-members" element={<OrganizationMembers />} />
+              <Route path="automation/n8n-workflows" element={<N8nWorkflows />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

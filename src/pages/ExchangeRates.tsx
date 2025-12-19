@@ -97,7 +97,7 @@ export default function ExchangeRates() {
             placeholder="Para birimi ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-10 w-full"
+            className="input-field pl-10 w-full"
           />
         </div>
 

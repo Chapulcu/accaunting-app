@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { ElementType } from 'react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import AIChatWidget from '@/components/ai/AIChatWidget'
 import {
   LayoutDashboard,
   Users,
@@ -30,6 +31,7 @@ import {
   ChevronRight,
   Layers,
   Building2,
+  Bot,
 } from 'lucide-react'
 
 type UserRole = 'user' | 'accountant' | 'manager' | 'admin'
@@ -112,8 +114,18 @@ const menuGroups: MenuGroup[] = [
     items: [
       { path: '/reminders', icon: Bell, label: 'Hatırlatmalar', allowedRoles: ['manager', 'admin'] },
       { path: '/approval-workflows', icon: GitBranch, label: 'Onay Akışları', allowedRoles: ['manager', 'admin'] },
+      { path: '/automation/n8n-workflows', icon: Bot, label: 'n8n Workflow\'lar', allowedRoles: ['admin'] },
     ],
     allowedRoles: ['manager', 'admin'],
+  },
+  {
+    title: 'Organizasyon',
+    icon: Building2,
+    items: [
+      { path: '/organization-settings', icon: Building2, label: 'Organizasyon Ayarları', allowedRoles: ['admin'] },
+      { path: '/organization-members', icon: Users, label: 'Üyeler', allowedRoles: ['admin'] },
+    ],
+    allowedRoles: ['admin'],
   },
   {
     title: 'Yetki & Ayarlar',
@@ -372,6 +384,9 @@ export default function Layout() {
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
         />
       )}
+
+      {/* AI Chat Widget */}
+      <AIChatWidget />
     </div>
   )
 }

@@ -17,7 +17,8 @@ import {
   MailCheck,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { OrganizationService, InviteMemberData } from '@/services/organizationService'
+import { OrganizationService } from '@/services/organizationService'
+import type { InviteMemberData } from '@/services/organizationService'
 import Tooltip from '@/components/Tooltip'
 
 interface Profile {
@@ -422,7 +423,7 @@ export default function OrganizationMembers() {
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                  className="input"
+                  className="input-field"
                   placeholder="ornek@email.com"
                   required
                 />
@@ -435,7 +436,7 @@ export default function OrganizationMembers() {
                 <select
                   value={inviteForm.role}
                   onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as any })}
-                  className="input"
+                  className="input-field"
                   required
                 >
                   <option value="user">Kullanıcı - Temel yetkiler</option>
@@ -451,7 +452,7 @@ export default function OrganizationMembers() {
                 <textarea
                   value={inviteForm.invitation_message}
                   onChange={(e) => setInviteForm({ ...inviteForm, invitation_message: e.target.value })}
-                  className="input"
+                  className="input-field"
                   rows={3}
                   placeholder="Organizasyonumuza hoş geldiniz..."
                 />

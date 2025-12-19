@@ -163,7 +163,7 @@ export default function IncomeStatement() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="input pl-10"
+                className="input-field pl-10"
               />
             </div>
           </div>
@@ -178,7 +178,7 @@ export default function IncomeStatement() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="input pl-10"
+                className="input-field pl-10"
               />
             </div>
           </div>
