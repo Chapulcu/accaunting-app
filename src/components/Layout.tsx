@@ -32,16 +32,20 @@ import {
   Building2,
 } from 'lucide-react'
 
+type UserRole = 'user' | 'accountant' | 'manager' | 'admin'
+
 type MenuItem = {
   path: string
   icon: ElementType
   label: string
+  allowedRoles?: UserRole[]
 }
 
 type MenuGroup = {
   title: string
   icon: ElementType
   items: MenuItem[]
+  allowedRoles?: UserRole[]
 }
 
 const menuGroups: MenuGroup[] = [
@@ -49,6 +53,7 @@ const menuGroups: MenuGroup[] = [
     title: 'Genel',
     icon: LayoutDashboard,
     items: [{ path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }],
+    // Herkes görebilir
   },
   {
     title: 'Satış & Müşteri',
@@ -56,61 +61,69 @@ const menuGroups: MenuGroup[] = [
     items: [
       { path: '/customers', icon: Users, label: 'Müşteriler' },
       { path: '/invoices', icon: FileText, label: 'Faturalar' },
-      { path: '/recurring-invoices', icon: Calendar, label: 'Tekrarlayan Faturalar' },
+      { path: '/recurring-invoices', icon: Calendar, label: 'Tekrarlayan Faturalar', allowedRoles: ['accountant', 'manager', 'admin'] },
       { path: '/payments', icon: Wallet, label: 'Ödemeler' },
       { path: '/products', icon: Package, label: 'Ürünler & Stok' },
     ],
+    // Herkes görebilir
   },
   {
     title: 'Finans & Nakit',
     icon: Wallet,
     items: [
       { path: '/expenses', icon: Receipt, label: 'Giderler' },
-      { path: '/bank-accounts', icon: Building2, label: 'Banka Hesapları' },
-      { path: '/exchange-rates', icon: TrendingUp, label: 'Döviz Kurları' },
+      { path: '/bank-accounts', icon: Building2, label: 'Banka Hesapları', allowedRoles: ['accountant', 'manager', 'admin'] },
+      { path: '/exchange-rates', icon: TrendingUp, label: 'Döviz Kurları', allowedRoles: ['accountant', 'manager', 'admin'] },
     ],
+    // Herkes görebilir
   },
   {
     title: 'Muhasebe',
     icon: BookOpen,
     items: [
       { path: '/accounts', icon: BookOpen, label: 'Hesap Planı' },
-      { path: '/journal-entries', icon: BookMarked, label: 'Yevmiye Defteri' },
-      { path: '/period-close', icon: Lock, label: 'Dönem Kapama' },
+      { path: '/journal-entries', icon: BookMarked, label: 'Yevmiye Defteri', allowedRoles: ['accountant', 'manager', 'admin'] },
+      { path: '/period-close', icon: Lock, label: 'Dönem Kapama', allowedRoles: ['accountant', 'manager', 'admin'] },
     ],
+    allowedRoles: ['accountant', 'manager', 'admin'],
   },
   {
     title: 'Raporlar & Analiz',
     icon: BarChart3,
     items: [
       { path: '/reports', icon: BarChart3, label: 'Raporlar' },
-      { path: '/email-history', icon: Mail, label: 'Email Geçmişi' },
+      { path: '/email-history', icon: Mail, label: 'Email Geçmişi', allowedRoles: ['manager', 'admin'] },
     ],
+    // Herkes raporları görebilir
   },
   {
     title: 'E-Dönüşüm',
     icon: FileCheck,
     items: [
       { path: '/e-invoices', icon: FileCheck, label: 'E-Fatura Yönetimi' },
-      { path: '/e-invoice-settings', icon: Settings, label: 'E-Fatura Ayarları' },
-      { path: '/e-archive-settings', icon: FileArchive, label: 'E-Arşiv Ayarları' },
+      { path: '/e-invoice-settings', icon: Settings, label: 'E-Fatura Ayarları', allowedRoles: ['manager', 'admin'] },
+      { path: '/e-archive-settings', icon: FileArchive, label: 'E-Arşiv Ayarları', allowedRoles: ['manager', 'admin'] },
     ],
+    allowedRoles: ['accountant', 'manager', 'admin'],
   },
   {
     title: 'Otomasyon',
     icon: Bell,
     items: [
-      { path: '/reminders', icon: Bell, label: 'Hatırlatmalar' },
-      { path: '/approval-workflows', icon: GitBranch, label: 'Onay Akışları' },
+      { path: '/reminders', icon: Bell, label: 'Hatırlatmalar', allowedRoles: ['manager', 'admin'] },
+      { path: '/approval-workflows', icon: GitBranch, label: 'Onay Akışları', allowedRoles: ['manager', 'admin'] },
     ],
+    allowedRoles: ['manager', 'admin'],
   },
   {
     title: 'Yetki & Ayarlar',
     icon: Shield,
     items: [
-      { path: '/roles-permissions', icon: Shield, label: 'Roller & İzinler' },
+      { path: '/users-management', icon: Users, label: 'Kullanıcılar', allowedRoles: ['admin'] },
+      { path: '/roles-permissions', icon: Shield, label: 'Roller & İzinler', allowedRoles: ['admin'] },
       { path: '/settings', icon: Settings, label: 'Ayarlar' },
     ],
+    // Herkes ayarlarını görebilir ama roller ve kullanıcılar sadece admin
   },
 ]
 
@@ -125,7 +138,7 @@ export default function Layout() {
     }, {} as Record<string, boolean>)
   )
   const location = useLocation()
-  const { user, signOut } = useAuth()
+  const { user, userRole, profileLoading, signOut } = useAuth()
 
   const handleSignOut = async () => {
     await signOut()
@@ -142,7 +155,29 @@ export default function Layout() {
     }))
   }
 
-  const renderedGroups = useMemo(() => menuGroups, [])
+  const renderedGroups = useMemo(() => {
+    if (!userRole) return []
+
+    return menuGroups
+      .filter((group) => {
+        // Eğer grup allowedRoles tanımlı ise, kullanıcı rolü kontrol et
+        if (group.allowedRoles && !group.allowedRoles.includes(userRole)) {
+          return false
+        }
+        return true
+      })
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => {
+          // Eğer item allowedRoles tanımlı ise, kullanıcı rolü kontrol et
+          if (item.allowedRoles && !item.allowedRoles.includes(userRole)) {
+            return false
+          }
+          return true
+        }),
+      }))
+      .filter((group) => group.items.length > 0) // Boş grupları kaldır
+  }, [userRole])
 
   return (
     <div className="min-h-screen flex">
@@ -182,7 +217,12 @@ export default function Layout() {
 
           {/* Navigation */}
           <nav className={`flex-1 p-4 space-y-2 overflow-y-auto ${isCollapsed ? 'px-2' : 'px-4'}`}>
-            {renderedGroups.map((group) => {
+            {profileLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+              </div>
+            ) : (
+              renderedGroups.map((group) => {
               const GroupIcon = group.icon || Layers
               const isOpen = openGroups[group.title]
 
@@ -254,7 +294,8 @@ export default function Layout() {
                   </div>
                 </div>
               )
-            })}
+            })
+            )}
           </nav>
 
           {/* User Menu */}
@@ -273,8 +314,10 @@ export default function Layout() {
                       <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                         {user?.email}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Kullanıcı
+                      <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                        {userRole === 'admin' ? 'Yönetici' :
+                         userRole === 'manager' ? 'Müdür' :
+                         userRole === 'accountant' ? 'Muhasebeci' : 'Kullanıcı'}
                       </p>
                     </div>
                     <ChevronDown className="w-4 h-4 text-gray-400" />

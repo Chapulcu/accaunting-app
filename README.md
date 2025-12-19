@@ -24,6 +24,16 @@ accounting-app/
 │   ├── types/          # TypeScript types
 │   ├── services/       # API services
 │   └── utils/          # Helper functions
+├── docs/               # 📚 Dokümantasyon
+│   ├── SETUP_SUMMARY.md      # Yapılanların özeti
+│   ├── ADMIN_SETUP.md        # Admin kurulum rehberi
+│   ├── SECURITY_UPDATE.md    # Güvenlik güncellemeleri
+│   ├── TROUBLESHOOTING.md    # Sorun giderme
+│   └── ...                   # Diğer dökümanlar
+├── scripts/            # Yardımcı scriptler
+│   ├── create-admin.js       # Admin oluşturma (interaktif)
+│   ├── create-admin-simple.js # Admin oluşturma (CLI)
+│   └── create-admin.sql      # Admin oluşturma (SQL)
 ├── supabase/
 │   ├── migrations/     # Temel veritabanı migration dosyaları
 │   └── scripts/        # Ek SQL scriptleri
@@ -147,6 +157,32 @@ npm run dev
 - ✅ Kullanıcılar sadece kendi verilerini görebilir
 - ✅ Admin rolleri için özel yetkiler
 - ✅ SQL injection koruması
+
+## 📚 Dokümantasyon
+
+Detaylı dokümantasyon için [`docs/`](./docs) dizinine bakın:
+
+- 📖 [Dokümantasyon İndeksi](./docs/README.md) - Tüm dökümanların katalogu
+- 🔧 [Kurulum Özeti](./docs/SETUP_SUMMARY.md) - Yapılan işlemlerin özeti
+- 👤 [Admin Kurulumu](./docs/ADMIN_SETUP.md) - Admin kullanıcısı oluşturma
+- 🔒 [Güvenlik Güncellemesi](./docs/SECURITY_UPDATE.md) - CVE-2025-55182
+- 🔧 [Sorun Giderme](./docs/TROUBLESHOOTING.md) - Yaygın sorunlar ve çözümler
+- 📖 [Kullanım Kılavuzu](./docs/KULLANIM_KILAVUZU.md) - Uygulama kullanımı
+- 🚀 [Kurulum Rehberi](./docs/SETUP_GUIDE.md) - Detaylı kurulum
+- 🎯 [Özellikler](./docs/FEATURES.md) - Tamamlanan ve planlanan özellikler
+- 🗺️ [Yol Haritası](./docs/ROADMAP.md) - Proje planı
+
+## 🔐 Giriş Bilgileri
+
+### Admin Kullanıcısı (Local Development)
+
+```
+Email: admin@accounting.com
+Şifre: Admin123!
+Rol: admin
+```
+
+**Not:** Production ortamında bu şifreyi mutlaka değiştirin!
 
 ## 📚 Kullanım
 

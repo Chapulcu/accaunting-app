@@ -40,7 +40,10 @@ export default function RolesPermissions() {
   // Create default roles mutation
   const createDefaultMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error('User not authenticated')
+      if (!user?.id) {
+        throw new Error('Kullanıcı bilgisi yüklenemedi. Lütfen sayfayı yenileyin.')
+      }
+      console.log('Creating default roles for user:', user.id)
       await RBACService.createDefaultRoles(user.id)
     },
     onSuccess: () => {
@@ -48,6 +51,7 @@ export default function RolesPermissions() {
       toast.success('Varsayılan roller oluşturuldu')
     },
     onError: (error: any) => {
+      console.error('Create default roles error:', error)
       toast.error(error.message || 'Roller oluşturulamadı')
     },
   })
@@ -55,7 +59,9 @@ export default function RolesPermissions() {
   // Save role mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error('User not authenticated')
+      if (!user?.id) {
+        throw new Error('Kullanıcı bilgisi yüklenemedi. Lütfen sayfayı yenileyin.')
+      }
 
       if (selectedRole) {
         await RBACService.updateRole(
@@ -80,6 +86,7 @@ export default function RolesPermissions() {
       handleCloseModal()
     },
     onError: (error: any) => {
+      console.error('Save role error:', error)
       toast.error(error.message || 'İşlem başarısız')
     },
   })
@@ -87,7 +94,9 @@ export default function RolesPermissions() {
   // Delete role mutation
   const deleteMutation = useMutation({
     mutationFn: async (roleId: string) => {
-      if (!user) throw new Error('User not authenticated')
+      if (!user?.id) {
+        throw new Error('Kullanıcı bilgisi yüklenemedi. Lütfen sayfayı yenileyin.')
+      }
       await RBACService.deleteRole(roleId, user.id)
     },
     onSuccess: () => {
@@ -95,6 +104,7 @@ export default function RolesPermissions() {
       toast.success('Rol silindi')
     },
     onError: (error: any) => {
+      console.error('Delete role error:', error)
       toast.error(error.message || 'Silme başarısız')
     },
   })

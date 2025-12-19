@@ -31,6 +31,7 @@ import EInvoices from '@/pages/EInvoices'
 import EArchiveSettings from '@/pages/EArchiveSettings'
 import BankAccounts from '@/pages/BankAccounts'
 import RolesPermissions from '@/pages/RolesPermissions'
+import UsersManagement from '@/pages/UsersManagement'
 import Reminders from '@/pages/Reminders'
 import ApprovalWorkflows from '@/pages/ApprovalWorkflows'
 
@@ -108,6 +109,7 @@ function App() {
               <Route path="e-archive-settings" element={<EArchiveSettings />} />
               <Route path="bank-accounts" element={<BankAccounts />} />
               <Route path="roles-permissions" element={<RolesPermissions />} />
+              <Route path="users-management" element={<UsersManagement />} />
               <Route path="approval-workflows" element={<ApprovalWorkflows />} />
               <Route path="reminders" element={<Reminders />} />
               <Route path="settings" element={<Settings />} />

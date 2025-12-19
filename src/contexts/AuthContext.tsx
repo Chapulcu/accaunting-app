@@ -5,10 +5,21 @@ import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '@/utils/error'
 
+interface Profile {
+  id: string
+  email: string
+  full_name: string | null
+  role: 'user' | 'accountant' | 'manager' | 'admin'
+  company_name: string | null
+}
+
 interface AuthContextType {
   user: User | null
   session: Session | null
+  profile: Profile | null
+  userRole: 'user' | 'accountant' | 'manager' | 'admin' | null
   loading: boolean
+  profileLoading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, fullName: string) => Promise<void>
   signOut: () => Promise<void>
@@ -19,7 +30,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -39,6 +52,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Fetch user profile when user changes
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user) {
+        setProfile(null)
+        setProfileLoading(false)
+        return
+      }
+
+      setProfileLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, role, company_name')
+          .eq('id', user.id)
+          .single()
+
+        if (error) {
+          console.error('Error fetching profile:', error)
+          setProfileLoading(false)
+          return
+        }
+
+        setProfile(data)
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [user])
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -111,7 +158,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     session,
+    profile,
+    userRole: profile?.role ?? null,
     loading,
+    profileLoading,
     signIn,
     signUp,
     signOut,
