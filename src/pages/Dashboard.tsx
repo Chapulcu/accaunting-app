@@ -22,6 +22,9 @@ import {
   Legend,
 } from 'recharts'
 import Tooltip from '@/components/Tooltip'
+import CashFlowPredictionWidget from '@/components/dashboard/CashFlowPredictionWidget'
+import N8nWorkflowStatusWidget from '@/components/dashboard/N8nWorkflowStatusWidget'
+import RecentOCRScansWidget from '@/components/dashboard/RecentOCRScansWidget'
 
 type DashboardMonthlyData = {
   ay: string
@@ -410,6 +413,24 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* AI & Automation Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Cash Flow Prediction Widget */}
+        <div className="lg:col-span-2">
+          <CashFlowPredictionWidget />
+        </div>
+
+        {/* n8n Workflow Status Widget */}
+        <div>
+          <N8nWorkflowStatusWidget />
+        </div>
+      </div>
+
+      {/* Recent OCR Scans Widget */}
+      <div className="grid grid-cols-1 gap-6">
+        <RecentOCRScansWidget />
       </div>
     </div>
   )

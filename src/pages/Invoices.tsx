@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSettings } from '@/hooks/useSettings'
 import toast from 'react-hot-toast'
 import {
   Plus,
@@ -20,8 +21,11 @@ import {
   Printer,
   FileDown,
   FileCheck,
+  ScanLine,
 } from 'lucide-react'
 import { getErrorMessage } from '@/utils/error'
+import AIInvoiceScanner from '@/components/ai/AIInvoiceScanner'
+import BulkOCRProcessor from '@/components/ai/BulkOCRProcessor'
 import { exportInvoicesToCSV } from '@/lib/export'
 import { exportInvoicesToExcel } from '@/lib/excelExport'
 import { downloadInvoicePDF, printInvoicePDF } from '@/lib/pdf'
@@ -80,6 +84,7 @@ interface InvoiceFormItem {
 
 export default function Invoices() {
   const { user } = useAuth()
+  const { settings } = useSettings()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | InvoiceStatus>('all')
   const [currentPage, setCurrentPage] = useState(1)
@@ -90,6 +95,8 @@ export default function Invoices() {
   const [showModal, setShowModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showEInvoiceModal, setShowEInvoiceModal] = useState(false)
+  const [showOCRScanner, setShowOCRScanner] = useState(false)
+  const [showBulkOCR, setShowBulkOCR] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null)
   const [eInvoiceBuyerVKN, setEInvoiceBuyerVKN] = useState('')
@@ -732,6 +739,24 @@ export default function Invoices() {
             <Download className="w-5 h-5 mr-2" />
             Excel
           </button>
+          {settings?.ai_ocr_enabled && (
+            <>
+              <button
+                onClick={() => setShowOCRScanner(true)}
+                className="btn-secondary flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+              >
+                <ScanLine className="w-5 h-5" />
+                OCR Tarama
+              </button>
+              <button
+                onClick={() => setShowBulkOCR(true)}
+                className="btn-secondary flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+              >
+                <FileCheck className="w-5 h-5" />
+                Toplu OCR
+              </button>
+            </>
+          )}
           <button onClick={handleOpenModal} className="btn-primary">
             <Plus className="w-5 h-5 mr-2" />
             Yeni Fatura
@@ -1470,6 +1495,212 @@ export default function Invoices() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* OCR Scanner Modal */}
+      {showOCRScanner && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-700 p-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <ScanLine className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                AI Fatura Tarama
+              </h2>
+              <button
+                onClick={() => setShowOCRScanner(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <AIInvoiceScanner
+                onScanComplete={async (result) => {
+                  // Auto-fill form with OCR data
+
+                  // Set invoice date
+                  if (result.document_date) {
+                    try {
+                      const date = new Date(result.document_date)
+                      if (!isNaN(date.getTime())) {
+                        setInvoiceDate(date.toISOString().split('T')[0])
+                      }
+                    } catch (e) {
+                      // Keep current date
+                    }
+                  }
+
+                  // Set notes with vendor info
+                  if (result.vendor_name) {
+                    const noteText = `Satıcı: ${result.vendor_name}${result.document_number ? ` | Belge No: ${result.document_number}` : ''}`
+                    setNotes(noteText)
+                  }
+
+                  // Set line items from OCR
+                  if (result.items && result.items.length > 0) {
+                    const ocrItems: InvoiceFormItem[] = result.items.map((item, index) => ({
+                      id: Date.now() + index,
+                      description: item.description,
+                      quantity: item.quantity || 1,
+                      unit_price: item.unit_price || item.amount,
+                      tax_rate: 20, // Default tax rate
+                      discount_rate: 0,
+                    }))
+                    setItems(ocrItems)
+                    toast.success(`${ocrItems.length} kalem eklendi`, { duration: 3000 })
+                  } else if (result.total_amount) {
+                    // If no items, create a single item with total amount
+                    const singleItem: InvoiceFormItem = {
+                      id: Date.now(),
+                      description: result.vendor_name || 'OCR Taranan Fatura',
+                      quantity: 1,
+                      unit_price: result.total_amount / 1.2, // Assuming 20% tax
+                      tax_rate: 20,
+                      discount_rate: 0,
+                    }
+                    setItems([singleItem])
+                  }
+
+                  // Try to find matching customer by name
+                  if (result.vendor_name) {
+                    try {
+                      const { data: companies } = await supabase
+                        .from('companies')
+                        .select('id, name')
+                        .ilike('name', `%${result.vendor_name}%`)
+                        .limit(1)
+
+                      if (companies && companies.length > 0) {
+                        setSelectedCompanyId(companies[0].id)
+                        toast.success(`Müşteri bulundu: ${companies[0].name}`, { duration: 3000 })
+                      } else {
+                        toast.info(
+                          `Müşteri "${result.vendor_name}" bulunamadı. Yeni müşteri olarak ekleyebilirsiniz.`,
+                          { duration: 5000 }
+                        )
+                      }
+                    } catch (error) {
+                      console.error('Customer search error:', error)
+                    }
+                  }
+
+                  // Close OCR modal and open invoice form
+                  setShowOCRScanner(false)
+                  setShowModal(true)
+
+                  toast.success(
+                    'OCR verisi fatura formuna aktarıldı! Kontrol edip kaydedin.',
+                    { duration: 4000 }
+                  )
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk OCR Processor Modal */}
+      {showBulkOCR && (
+        <BulkOCRProcessor
+          entityType="invoice"
+          onClose={() => setShowBulkOCR(false)}
+          onBulkComplete={(results) => {
+            // Show confirmation dialog
+            const confirmMessage = `${results.length} fatura başarıyla tarandı. Bu faturaları tek tek oluşturmak için tıklayın.`
+
+            if (window.confirm(confirmMessage)) {
+              // Process each result
+              let processedCount = 0
+
+              results.forEach(async ({ result }, index) => {
+                // Wait a bit between each to avoid overwhelming the UI
+                setTimeout(async () => {
+                  // Reset form
+                  setSelectedCompanyId(null)
+                  setInvoiceDate(new Date().toISOString().split('T')[0])
+                  setNotes('')
+                  setItems([])
+
+                  // Set invoice date
+                  if (result.document_date) {
+                    try {
+                      const date = new Date(result.document_date)
+                      if (!isNaN(date.getTime())) {
+                        setInvoiceDate(date.toISOString().split('T')[0])
+                      }
+                    } catch (e) {
+                      // Keep current date
+                    }
+                  }
+
+                  // Set notes with vendor info
+                  if (result.vendor_name) {
+                    const noteText = `Satıcı: ${result.vendor_name}${result.document_number ? ` | Belge No: ${result.document_number}` : ''} [Toplu OCR #${index + 1}]`
+                    setNotes(noteText)
+                  }
+
+                  // Set line items from OCR
+                  if (result.items && result.items.length > 0) {
+                    const ocrItems: InvoiceFormItem[] = result.items.map((item, idx) => ({
+                      id: Date.now() + idx,
+                      description: item.description,
+                      quantity: item.quantity || 1,
+                      unit_price: item.unit_price || item.amount,
+                      tax_rate: 20,
+                      discount_rate: 0,
+                    }))
+                    setItems(ocrItems)
+                  } else if (result.total_amount) {
+                    const singleItem: InvoiceFormItem = {
+                      id: Date.now(),
+                      description: result.vendor_name || 'OCR Taranan Fatura',
+                      quantity: 1,
+                      unit_price: result.total_amount / 1.2,
+                      tax_rate: 20,
+                      discount_rate: 0,
+                    }
+                    setItems([singleItem])
+                  }
+
+                  // Try to find matching customer
+                  if (result.vendor_name) {
+                    try {
+                      const { data: companies } = await supabase
+                        .from('companies')
+                        .select('id, name')
+                        .ilike('name', `%${result.vendor_name}%`)
+                        .limit(1)
+
+                      if (companies && companies.length > 0) {
+                        setSelectedCompanyId(companies[0].id)
+                      }
+                    } catch (error) {
+                      console.error('Customer search error:', error)
+                    }
+                  }
+
+                  // Open modal for first invoice
+                  if (index === 0) {
+                    setShowModal(true)
+                  }
+
+                  processedCount++
+
+                  if (processedCount === results.length) {
+                    toast.success(`${results.length} fatura hazır! Lütfen her birini kontrol edip kaydedin.`, {
+                      duration: 5000
+                    })
+                  }
+                }, index * 300) // 300ms delay between each
+              })
+            }
+
+            setShowBulkOCR(false)
+          }}
+        />
       )}
     </div>
   )

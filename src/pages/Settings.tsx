@@ -23,6 +23,10 @@ import {
   Tag,
   TrendingUp,
   MessageSquare,
+  Key,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react'
 
 interface CompanySettings {
@@ -43,9 +47,31 @@ export default function Settings() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { settings: appSettings, updateSetting, isUpdating } = useSettings()
-  const [darkMode, setDarkMode] = useState(
-    document.documentElement.classList.contains('dark')
-  )
+
+  // Initialize dark mode from localStorage or system preference
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode')
+    if (savedMode !== null) {
+      return savedMode === 'true'
+    }
+    // Fallback to system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+
+  // OpenAI API Key state
+  const [openaiApiKey, setOpenaiApiKey] = useState('')
+  const [isTestingKey, setIsTestingKey] = useState(false)
+  const [isSavingKey, setIsSavingKey] = useState(false)
+
+  // Apply dark mode on component mount and when darkMode changes
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    localStorage.setItem('darkMode', darkMode.toString())
+  }, [darkMode])
 
   // Fetch company settings
   const { data: settings, isLoading } = useQuery({
@@ -132,13 +158,74 @@ export default function Settings() {
   }
 
   const toggleDarkMode = () => {
-    if (darkMode) {
-      document.documentElement.classList.remove('dark')
-    } else {
-      document.documentElement.classList.add('dark')
-    }
     setDarkMode(!darkMode)
-    localStorage.setItem('darkMode', (!darkMode).toString())
+  }
+
+  // Handle OpenAI API Key Save
+  const handleSaveOpenAIKey = async () => {
+    if (!openaiApiKey.trim()) {
+      toast.error('API Key giriniz')
+      return
+    }
+
+    setIsSavingKey(true)
+
+    try {
+      const { data, error } = await supabase.functions.invoke('set-openai-key', {
+        body: {
+          api_key: openaiApiKey,
+          test_connection: false,
+        },
+      })
+
+      if (error) throw error
+
+      if (data.success) {
+        toast.success('OpenAI API Key kaydedildi')
+        setOpenaiApiKey('')
+        queryClient.invalidateQueries({ queryKey: ['app-settings'] })
+      } else {
+        throw new Error(data.message || 'API Key kaydedilemedi')
+      }
+    } catch (error: any) {
+      toast.error(getErrorMessage(error))
+    } finally {
+      setIsSavingKey(false)
+    }
+  }
+
+  // Handle OpenAI API Key Test
+  const handleTestOpenAIKey = async () => {
+    if (!openaiApiKey.trim()) {
+      toast.error('API Key giriniz')
+      return
+    }
+
+    setIsTestingKey(true)
+
+    try {
+      const { data, error } = await supabase.functions.invoke('set-openai-key', {
+        body: {
+          api_key: openaiApiKey,
+          test_connection: true,
+        },
+      })
+
+      if (error) throw error
+
+      if (data.success && data.test_result?.success) {
+        toast.success(`API Key geçerli! Model: ${data.test_result.model}`)
+        setOpenaiApiKey('')
+        queryClient.invalidateQueries({ queryKey: ['app-settings'] })
+      } else {
+        const errorMsg = data.test_result?.error || data.message || 'API Key test edilemedi'
+        toast.error(errorMsg)
+      }
+    } catch (error: any) {
+      toast.error(getErrorMessage(error))
+    } finally {
+      setIsTestingKey(false)
+    }
   }
 
   if (isLoading) {
@@ -455,6 +542,106 @@ export default function Settings() {
             </div>
 
             <div className="space-y-4 ml-7">
+              {/* OpenAI API Key Configuration */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <Key className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        OpenAI API Key
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        AI özelliklerini kullanmak için OpenAI API Key'inizi girin
+                      </p>
+                    </div>
+
+                    {/* API Key Status */}
+                    <div className="flex items-center gap-2">
+                      {appSettings?.openai_api_key_set ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                            API Key ayarlanmış
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                          <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                            API Key ayarlanmamış
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* API Key Input */}
+                    <div className="space-y-2">
+                      <input
+                        type="password"
+                        value={openaiApiKey}
+                        onChange={(e) => setOpenaiApiKey(e.target.value)}
+                        placeholder="sk-..."
+                        className="input-field w-full"
+                        disabled={isSavingKey || isTestingKey}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        API Key'iniz güvenli şekilde şifrelenerek saklanır. OpenAI API Key'inizi{' '}
+                        <a
+                          href="https://platform.openai.com/api-keys"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          buradan
+                        </a>{' '}
+                        alabilirsiniz.
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleTestOpenAIKey}
+                        disabled={!openaiApiKey.trim() || isTestingKey || isSavingKey}
+                        className="btn-secondary text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isTestingKey ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Test Ediliyor...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            Test Et
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleSaveOpenAIKey}
+                        disabled={!openaiApiKey.trim() || isTestingKey || isSavingKey}
+                        className="btn-primary text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSavingKey ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Kaydediliyor...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Kaydet
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 dark:border-slate-700 my-4"></div>
               {/* AI OCR */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

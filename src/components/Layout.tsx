@@ -32,6 +32,8 @@ import {
   Layers,
   Building2,
   Bot,
+  ScanLine,
+  Brain,
 } from 'lucide-react'
 
 type UserRole = 'user' | 'accountant' | 'manager' | 'admin'
@@ -115,6 +117,8 @@ const menuGroups: MenuGroup[] = [
       { path: '/reminders', icon: Bell, label: 'Hatırlatmalar', allowedRoles: ['manager', 'admin'] },
       { path: '/approval-workflows', icon: GitBranch, label: 'Onay Akışları', allowedRoles: ['manager', 'admin'] },
       { path: '/automation/n8n-workflows', icon: Bot, label: 'n8n Workflow\'lar', allowedRoles: ['admin'] },
+      { path: '/ocr-history', icon: ScanLine, label: 'OCR Tarama Geçmişi', allowedRoles: ['accountant', 'manager', 'admin'] },
+      { path: '/ai-feedback-analytics', icon: Brain, label: 'AI Öğrenme Analitiği', allowedRoles: ['manager', 'admin'] },
     ],
     allowedRoles: ['manager', 'admin'],
   },

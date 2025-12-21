@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSettings } from '@/hooks/useSettings'
 import toast from 'react-hot-toast'
 import type { Database } from '@/types/database'
 import { getErrorMessage } from '@/utils/error'
@@ -15,9 +16,13 @@ import {
   Tag,
   X,
   Download,
+  ScanLine,
+  FileCheck,
 } from 'lucide-react'
 import { exportExpensesToExcel } from '@/lib/excelExport'
 import Tooltip from '@/components/Tooltip'
+import AIInvoiceScanner from '@/components/ai/AIInvoiceScanner'
+import BulkOCRProcessor from '@/components/ai/BulkOCRProcessor'
 
 type ExpenseRow = Database['public']['Tables']['expenses']['Row']
 type ExpenseInsert = Database['public']['Tables']['expenses']['Insert']
@@ -41,9 +46,12 @@ interface ExpenseFormData {
 export default function Expenses() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [showOCRScanner, setShowOCRScanner] = useState(false)
+  const [showBulkOCR, setShowBulkOCR] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const { settings } = useSettings()
 
   // Form state
   const [formData, setFormData] = useState<ExpenseFormData>({
@@ -251,6 +259,24 @@ export default function Expenses() {
             <Download className="w-5 h-5 mr-2" />
             Excel
           </button>
+          {settings?.ai_ocr_enabled && (
+            <>
+              <button
+                onClick={() => setShowOCRScanner(true)}
+                className="btn-secondary flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+              >
+                <ScanLine className="w-5 h-5" />
+                Fiş Tarama
+              </button>
+              <button
+                onClick={() => setShowBulkOCR(true)}
+                className="btn-secondary flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+              >
+                <FileCheck className="w-5 h-5" />
+                Toplu OCR
+              </button>
+            </>
+          )}
           <button onClick={() => handleOpenModal()} className="btn-primary">
             <Plus className="w-5 h-5 mr-2" />
             Yeni Gider
@@ -534,6 +560,192 @@ export default function Expenses() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* OCR Scanner Modal */}
+      {showOCRScanner && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-700 p-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <ScanLine className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                AI Fiş/Fatura Tarama
+              </h2>
+              <button
+                onClick={() => setShowOCRScanner(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <AIInvoiceScanner
+                onScanComplete={async (result) => {
+                  // Auto-fill form with OCR data
+                  const newFormData: Partial<ExpenseFormData> = {}
+
+                  if (result.vendor_name) {
+                    newFormData.description = `${result.vendor_name} - ${result.document_number || 'Gider'}`
+                  }
+
+                  if (result.total_amount) {
+                    newFormData.amount = result.total_amount.toString()
+                  }
+
+                  if (result.document_date) {
+                    // Parse date (format might be DD/MM/YYYY or YYYY-MM-DD)
+                    try {
+                      const date = new Date(result.document_date)
+                      if (!isNaN(date.getTime())) {
+                        newFormData.expense_date = date.toISOString().split('T')[0]
+                      }
+                    } catch (e) {
+                      // Use today's date as fallback
+                      newFormData.expense_date = new Date().toISOString().split('T')[0]
+                    }
+                  } else {
+                    newFormData.expense_date = new Date().toISOString().split('T')[0]
+                  }
+
+                  // Try to get AI categorization suggestion
+                  if (settings?.ai_categorization_enabled && result.vendor_name) {
+                    try {
+                      const { data: categoryData } = await supabase.functions.invoke(
+                        'ai-categorization',
+                        {
+                          body: {
+                            entity_type: 'expense',
+                            description: result.vendor_name,
+                            amount: result.total_amount,
+                          },
+                        }
+                      )
+
+                      if (categoryData?.suggested_category_id) {
+                        newFormData.category_id = categoryData.suggested_category_id.toString()
+                        toast.success(
+                          `AI Kategori Önerisi: ${categoryData.suggested_category_name || 'Bilinmeyen'}`,
+                          { duration: 5000 }
+                        )
+                      }
+                    } catch (error) {
+                      console.error('AI categorization error:', error)
+                      // Continue without category suggestion
+                    }
+                  }
+
+                  // Update form data
+                  setFormData((prev) => ({
+                    ...prev,
+                    ...newFormData,
+                    payment_method: prev.payment_method || 'cash',
+                    category_id: newFormData.category_id || prev.category_id || '',
+                  }))
+
+                  // Close OCR modal and open expense form modal
+                  setShowOCRScanner(false)
+                  setShowModal(true)
+                  setEditingExpense(null)
+
+                  toast.success(
+                    'OCR verisi form\'a aktarıldı! Kontrol edip kaydedin.',
+                    { duration: 4000 }
+                  )
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk OCR Processor Modal */}
+      {showBulkOCR && (
+        <BulkOCRProcessor
+          entityType="expense"
+          onClose={() => setShowBulkOCR(false)}
+          onBulkComplete={async (results) => {
+            // Show confirmation dialog
+            const confirmMessage = `${results.length} gider fişi başarıyla tarandı. Bu giderleri tek tek oluşturmak için tıklayın.`
+
+            if (window.confirm(confirmMessage)) {
+              // Process each result
+              for (let i = 0; i < results.length; i++) {
+                const { result } = results[i]
+
+                // Prepare form data
+                const newFormData: Partial<ExpenseFormData> = {}
+
+                if (result.vendor_name) {
+                  newFormData.description = `${result.vendor_name} - ${result.document_number || 'Gider'} [Toplu OCR #${i + 1}]`
+                }
+
+                if (result.total_amount) {
+                  newFormData.amount = result.total_amount.toString()
+                }
+
+                if (result.document_date) {
+                  try {
+                    const date = new Date(result.document_date)
+                    if (!isNaN(date.getTime())) {
+                      newFormData.expense_date = date.toISOString().split('T')[0]
+                    }
+                  } catch (e) {
+                    newFormData.expense_date = new Date().toISOString().split('T')[0]
+                  }
+                } else {
+                  newFormData.expense_date = new Date().toISOString().split('T')[0]
+                }
+
+                // Try to get AI categorization suggestion
+                if (settings?.ai_categorization_enabled && result.vendor_name) {
+                  try {
+                    const { data: categoryData } = await supabase.functions.invoke(
+                      'ai-categorization',
+                      {
+                        body: {
+                          entity_type: 'expense',
+                          description: result.vendor_name,
+                          amount: result.total_amount,
+                        },
+                      }
+                    )
+
+                    if (categoryData?.suggested_category_id) {
+                      newFormData.category_id = categoryData.suggested_category_id.toString()
+                    }
+                  } catch (error) {
+                    console.error('AI categorization error:', error)
+                  }
+                }
+
+                // Update form data for first expense and open modal
+                if (i === 0) {
+                  setFormData((prev) => ({
+                    ...prev,
+                    ...newFormData,
+                    payment_method: prev.payment_method || 'cash',
+                    category_id: newFormData.category_id || prev.category_id || '',
+                  }))
+                  setShowModal(true)
+                  setEditingExpense(null)
+                }
+
+                // For subsequent expenses, you could auto-create them or queue them
+                // For now, we'll just prepare the first one for manual review
+              }
+
+              toast.success(
+                `${results.length} gider hazır! İlk gideri kontrol edip kaydedin, sonra diğerlerine geçebilirsiniz.`,
+                { duration: 6000 }
+              )
+            }
+
+            setShowBulkOCR(false)
+          }}
+        />
       )}
     </div>
   )

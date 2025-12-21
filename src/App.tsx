@@ -38,6 +38,8 @@ import OrganizationSettings from '@/pages/OrganizationSettings'
 import OrganizationMembers from '@/pages/OrganizationMembers'
 import AcceptInvitation from '@/pages/AcceptInvitation'
 import N8nWorkflows from '@/pages/automation/N8nWorkflows'
+import OCRHistory from '@/pages/OCRHistory'
+import AIFeedbackAnalytics from '@/pages/AIFeedbackAnalytics'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -120,6 +122,8 @@ function App() {
               <Route path="organization-settings" element={<OrganizationSettings />} />
               <Route path="organization-members" element={<OrganizationMembers />} />
               <Route path="automation/n8n-workflows" element={<N8nWorkflows />} />
+              <Route path="ocr-history" element={<OCRHistory />} />
+              <Route path="ai-feedback-analytics" element={<AIFeedbackAnalytics />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
