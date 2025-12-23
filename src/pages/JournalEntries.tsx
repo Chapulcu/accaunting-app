@@ -6,14 +6,11 @@ import toast from 'react-hot-toast'
 import {
   Plus,
   Search,
-  Edit,
   Trash2,
   X,
   BookOpen,
   Check,
-  Ban,
   Calendar,
-  FileText,
 } from 'lucide-react'
 import Tooltip from '@/components/Tooltip'
 

@@ -8,7 +8,6 @@ import {
   Plus,
   Settings,
   RefreshCw,
-  Download,
   Trash2,
   X,
   CheckCircle,
@@ -312,9 +311,13 @@ export default function BankAccounts() {
                   </div>
                 </div>
                 {account.api_enabled ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" title="API Aktif" />
+                  <span title="API Aktif">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  </span>
                 ) : (
-                  <XCircle className="w-5 h-5 text-gray-400" title="API Pasif" />
+                  <span title="API Pasif">
+                    <XCircle className="w-5 h-5 text-gray-400" />
+                  </span>
                 )}
               </div>
 

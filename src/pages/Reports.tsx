@@ -65,7 +65,10 @@ export default function Reports() {
 
       // Calculate totals
       const invoiceSummaries: InvoiceSummary[] = (invoices as InvoiceSummary[]) || []
-      const expenseSummaries: ExpenseSummary[] = (expenses as ExpenseSummary[]) || []
+      const expenseSummaries: ExpenseSummary[] = ((expenses as any[]) || []).map(exp => ({
+        ...exp,
+        expense_categories: Array.isArray(exp.expense_categories) ? exp.expense_categories[0] : exp.expense_categories
+      })) as ExpenseSummary[]
 
       const totalRevenue = invoiceSummaries.reduce(
         (sum, inv) => sum + Number(inv.total_amount || 0),

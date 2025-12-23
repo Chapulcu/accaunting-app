@@ -291,7 +291,7 @@ export function createPaymentReminderTemplate(
   `
 
   const textContent = `
-⚠️ Ödeme Hatırlatma
+⚠️ Ödeme Hatırlatma - ${companyName}
 
 Sayın Müşterimiz,
 

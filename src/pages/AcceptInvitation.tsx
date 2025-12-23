@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
@@ -11,7 +11,7 @@ export default function AcceptInvitation() {
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const token = searchParams.get('token')
-  const [isAccepting, setIsAccepting] = useState(false)
+  const [, setIsAccepting] = useState(false)
 
   // Fetch invitation details
   const { data: invitation, isLoading, error } = useQuery({

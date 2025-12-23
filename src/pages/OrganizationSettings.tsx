@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
-import { Building2, Save, Loader2, Globe, Mail, Phone, MapPin, CreditCard, Calendar } from 'lucide-react'
+import { Building2, Save, Loader2, Globe, Mail, MapPin, CreditCard, Calendar } from 'lucide-react'
 import { OrganizationService } from '@/services/organizationService'
 import type { UpdateOrganizationData } from '@/services/organizationService'
 import Tooltip from '@/components/Tooltip'
 
 export default function OrganizationSettings() {
-  const { user } = useAuth()
+  const { user: _user } = useAuth()
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
 

@@ -140,7 +140,11 @@ export default function Invoices() {
 
       const { data, error } = await query
       if (error) throw error
-      return data as Invoice[]
+      // Handle array response for joined tables
+      return (data as any[]).map(inv => ({
+        ...inv,
+        companies: Array.isArray(inv.companies) ? inv.companies[0] : inv.companies
+      })) as Invoice[]
     },
     enabled: !!user,
   })
@@ -360,12 +364,16 @@ export default function Invoices() {
           .single()
 
         if (invoice && invoice.companies) {
+          const company = Array.isArray(invoice.companies)
+            ? invoice.companies[0]
+            : invoice.companies
+          const companyName = company?.name || 'Müşteri'
           try {
             await createInvoiceJournalEntry(
               user.id,
               invoice.id,
               invoice.invoice_date,
-              invoice.companies.name || 'Müşteri',
+              companyName,
               invoice.subtotal,
               invoice.tax_amount,
               invoice.total_amount
@@ -477,7 +485,7 @@ export default function Invoices() {
       toast.error('Dışa aktarılacak fatura bulunamadı')
       return
     }
-    exportInvoicesToCSV(invoices)
+    exportInvoicesToCSV(invoices as any[])
     toast.success('Faturalar CSV olarak dışa aktarıldı')
   }
 
@@ -486,7 +494,7 @@ export default function Invoices() {
       toast.error('Dışa aktarılacak fatura bulunamadı')
       return
     }
-    exportInvoicesToExcel(invoices)
+    exportInvoicesToExcel(invoices as any[])
     toast.success('Faturalar Excel olarak dışa aktarıldı')
   }
 
@@ -1542,7 +1550,7 @@ export default function Invoices() {
                   // Set line items from OCR
                   if (result.items && result.items.length > 0) {
                     const ocrItems: InvoiceFormItem[] = result.items.map((item, index) => ({
-                      id: Date.now() + index,
+                      id: String(Date.now() + index),
                       description: item.description,
                       quantity: item.quantity || 1,
                       unit_price: item.unit_price || item.amount,
@@ -1554,7 +1562,7 @@ export default function Invoices() {
                   } else if (result.total_amount) {
                     // If no items, create a single item with total amount
                     const singleItem: InvoiceFormItem = {
-                      id: Date.now(),
+                      id: String(Date.now()),
                       description: result.vendor_name || 'OCR Taranan Fatura',
                       quantity: 1,
                       unit_price: result.total_amount / 1.2, // Assuming 20% tax
@@ -1577,9 +1585,9 @@ export default function Invoices() {
                         setSelectedCompanyId(companies[0].id)
                         toast.success(`Müşteri bulundu: ${companies[0].name}`, { duration: 3000 })
                       } else {
-                        toast.info(
+                        toast(
                           `Müşteri "${result.vendor_name}" bulunamadı. Yeni müşteri olarak ekleyebilirsiniz.`,
-                          { duration: 5000 }
+                          { duration: 5000, icon: 'i' }
                         )
                       }
                     } catch (error) {
@@ -1645,7 +1653,7 @@ export default function Invoices() {
                   // Set line items from OCR
                   if (result.items && result.items.length > 0) {
                     const ocrItems: InvoiceFormItem[] = result.items.map((item, idx) => ({
-                      id: Date.now() + idx,
+                      id: String(Date.now() + idx),
                       description: item.description,
                       quantity: item.quantity || 1,
                       unit_price: item.unit_price || item.amount,
@@ -1655,7 +1663,7 @@ export default function Invoices() {
                     setItems(ocrItems)
                   } else if (result.total_amount) {
                     const singleItem: InvoiceFormItem = {
-                      id: Date.now(),
+                      id: String(Date.now()),
                       description: result.vendor_name || 'OCR Taranan Fatura',
                       quantity: 1,
                       unit_price: result.total_amount / 1.2,

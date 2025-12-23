@@ -8,32 +8,27 @@ import {
   TrendingDown,
   Target,
   Award,
-  AlertCircle,
   Download,
   CheckCircle2,
   XCircle,
   BarChart3,
-  PieChart,
-  Users,
-  Calendar,
 } from 'lucide-react'
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   PieChart as RechartsPieChart,
   Pie,
   Cell,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts'
+import type { PieLabelRenderProps } from 'recharts'
 import toast from 'react-hot-toast'
-import Tooltip as TooltipComponent from '@/components/Tooltip'
+import TooltipComponent from '@/components/Tooltip'
 
 interface FeedbackMetrics {
   total_scans: number
@@ -55,14 +50,6 @@ interface VendorAccuracy {
   avg_confidence: number
 }
 
-interface CategoryAccuracy {
-  category_name: string
-  total_suggestions: number
-  approved: number
-  rejected: number
-  accuracy_rate: number
-}
-
 interface TrendData {
   date: string
   approved: number
@@ -70,15 +57,13 @@ interface TrendData {
   avg_confidence: number
 }
 
-const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6']
-
 export default function AIFeedbackAnalytics() {
   const { user } = useAuth()
   const { settings } = useSettings()
   const queryClient = useQueryClient()
 
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d')
-  const [bulkActionType, setBulkActionType] = useState<'approve-high' | 'reject-low' | null>(null)
+  const [, setBulkActionType] = useState<'approve-high' | 'reject-low' | null>(null)
 
   // Fetch feedback metrics
   const { data: metrics } = useQuery<FeedbackMetrics>({
@@ -529,7 +514,11 @@ export default function AIFeedbackAnalytics() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={(props: PieLabelRenderProps) => {
+                  const name = props.name ?? ''
+                  const percent = Number(props.percent ?? 0)
+                  return `${name}: ${(percent * 100).toFixed(0)}%`
+                }}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
@@ -538,7 +527,7 @@ export default function AIFeedbackAnalytics() {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <RechartsTooltip />
             </RechartsPieChart>
           </ResponsiveContainer>
         </div>
@@ -570,7 +559,7 @@ export default function AIFeedbackAnalytics() {
                 }}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip
+              <RechartsTooltip
                 labelFormatter={(label) => new Date(label).toLocaleDateString('tr-TR')}
               />
               <Legend />

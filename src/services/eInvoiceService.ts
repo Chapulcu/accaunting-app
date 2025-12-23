@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase'
 // TYPE DEFINITIONS
 // ============================================================================
 
-export type EInvoiceProvider = 'foriba' | 'biges' | 'uyumsoft' | 'custom'
+export type EInvoiceProviderType = 'foriba' | 'biges' | 'uyumsoft' | 'custom'
 export type EInvoiceStatus =
   | 'draft'
   | 'created'
@@ -28,7 +28,7 @@ export type EInvoiceDirection = 'outgoing' | 'incoming'
 export interface EInvoiceSettings {
   id?: string
   user_id: string
-  provider: EInvoiceProvider
+  provider: EInvoiceProviderType
   environment: 'test' | 'production'
   api_username?: string
   api_password?: string
@@ -151,7 +151,7 @@ export class MockEInvoiceProvider extends EInvoiceProvider {
     }
   }
 
-  async queryStatus(e_invoice_uuid: string): Promise<QueryStatusResponse> {
+  async queryStatus(_e_invoice_uuid: string): Promise<QueryStatusResponse> {
     await new Promise((resolve) => setTimeout(resolve, 500))
 
     return {
@@ -162,7 +162,7 @@ export class MockEInvoiceProvider extends EInvoiceProvider {
     }
   }
 
-  async cancelInvoice(e_invoice_uuid: string, reason: string): Promise<EInvoiceResponse> {
+  async cancelInvoice(_e_invoice_uuid: string, reason: string): Promise<EInvoiceResponse> {
     await new Promise((resolve) => setTimeout(resolve, 500))
 
     return {
@@ -172,11 +172,11 @@ export class MockEInvoiceProvider extends EInvoiceProvider {
     }
   }
 
-  async getIncomingInvoices(startDate: Date): Promise<IncomingEInvoice[]> {
+  async getIncomingInvoices(_startDate: Date): Promise<IncomingEInvoice[]> {
     return [] // Mock'ta gelen fatura yok
   }
 
-  async downloadXML(e_invoice_uuid: string): Promise<string> {
+  async downloadXML(_e_invoice_uuid: string): Promise<string> {
     return '<Invoice>Mock XML Content</Invoice>'
   }
 

@@ -49,7 +49,6 @@ const accountTypeIcons = {
 }
 
 type ChartOfAccountInsert = Database['public']['Tables']['chart_of_accounts']['Insert']
-type ChartOfAccountUpdate = Database['public']['Tables']['chart_of_accounts']['Update']
 
 export default function ChartOfAccounts() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -95,7 +94,7 @@ export default function ChartOfAccounts() {
   // Create/Update mutation
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const baseData: ChartOfAccountUpdate = {
+      const baseData = {
         code: data.code,
         name: data.name,
         account_type: data.account_type,

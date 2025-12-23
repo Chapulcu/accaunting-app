@@ -55,12 +55,12 @@ export default function N8nWorkflowStatusWidget() {
         failed_last_24h,
       }
     },
-    enabled: !!settings?.n8n_integration_enabled && !!user,
+    enabled: !!settings?.n8n_enabled && !!user,
     refetchInterval: 30000, // Refresh every 30 seconds
   })
 
   // Don't show if feature is disabled
-  if (!settings?.n8n_integration_enabled) {
+  if (!settings?.n8n_enabled) {
     return null
   }
 

@@ -13,7 +13,11 @@ type JournalEntryLineRecord = Database['public']['Tables']['journal_entry_lines'
     user_id: string
     status: string
     entry_date: string
-  }
+  } | {
+    user_id: string
+    status: string
+    entry_date: string
+  }[]
 }
 
 interface BalanceSheetItem {

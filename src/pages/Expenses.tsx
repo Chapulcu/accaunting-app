@@ -26,7 +26,6 @@ import BulkOCRProcessor from '@/components/ai/BulkOCRProcessor'
 
 type ExpenseRow = Database['public']['Tables']['expenses']['Row']
 type ExpenseInsert = Database['public']['Tables']['expenses']['Insert']
-type ExpenseUpdate = Database['public']['Tables']['expenses']['Update']
 type ExpenseCategory = Database['public']['Tables']['expense_categories']['Row']
 
 type Expense = ExpenseRow & {
@@ -102,7 +101,7 @@ export default function Expenses() {
         throw new Error('Geçerli bir tutar giriniz')
       }
 
-      const expenseData: ExpenseUpdate = {
+      const expenseData = {
         description: data.description.trim(),
         amount: amountValue,
         expense_date: data.expense_date,
@@ -138,8 +137,6 @@ export default function Expenses() {
             const vatAmount = amountValue - subtotal
 
             // Kategori bilgisini al
-            const category = categories?.find(c => c.id === data.category_id)
-
             await createExpenseJournalEntry(
               user.id,
               insertedExpense.id,
@@ -147,7 +144,6 @@ export default function Expenses() {
               data.description.trim(),
               amountValue,
               vatAmount,
-              category?.name || 'Genel',
               data.payment_method as 'cash' | 'bank' | 'credit_card'
             )
           } catch (journalError) {

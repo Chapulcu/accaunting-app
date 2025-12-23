@@ -17,8 +17,6 @@ import {
   Wallet,
   BookMarked,
   ArrowRight,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react'
 import { ApprovalService } from '@/services/approvalService'
 import { RBACService } from '@/services/rbacService'
@@ -26,9 +24,7 @@ import type {
   ApprovalWorkflowWithSteps,
   EntityType,
   ApprovalRequest,
-  ApprovalHistory,
 } from '@/services/approvalService'
-import type { RoleWithPermissions } from '@/services/rbacService'
 import Tooltip from '@/components/Tooltip'
 
 export default function ApprovalWorkflows() {

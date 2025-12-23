@@ -24,9 +24,14 @@ interface ExchangeRate {
  */
 export const fetchTCMBRates = async (): Promise<TCMBRate[]> => {
   try {
-    // Vite proxy üzerinden çek (development)
+    // Vite proxy (dev) or local container proxy (prod on localhost)
     const isDev = import.meta.env.DEV
-    const url = isDev ? '/api/tcmb' : 'https://www.tcmb.gov.tr/kurlar/today.xml'
+    const isLocal =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1')
+    const url =
+      isDev || isLocal ? '/api/tcmb' : 'https://www.tcmb.gov.tr/kurlar/today.xml'
 
     const response = await fetch(url)
 

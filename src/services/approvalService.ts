@@ -242,7 +242,7 @@ export const ApprovalService = {
   /**
    * Bekleyen onay taleplerini getir
    */
-  async getPendingRequests(userId: string): Promise<ApprovalRequest[]> {
+  async getPendingRequests(_userId: string): Promise<ApprovalRequest[]> {
     const { data, error } = await supabase
       .from('approval_requests')
       .select(
@@ -256,7 +256,7 @@ export const ApprovalService = {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || []
+    return (data as unknown as ApprovalRequest[]) || []
   },
 
   /**
@@ -278,7 +278,7 @@ export const ApprovalService = {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || []
+    return (data as unknown as ApprovalRequest[]) || []
   },
 
   /**
@@ -363,6 +363,6 @@ export const ApprovalService = {
       .order('approved_at', { ascending: true })
 
     if (error) throw error
-    return data || []
+    return (data as unknown as ApprovalHistory[]) || []
   },
 }

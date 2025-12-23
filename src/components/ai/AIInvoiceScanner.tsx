@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useSettings } from '@/hooks/useSettings'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '@/utils/error'
-import { Upload, ScanLine, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { Upload, ScanLine, Loader2, CheckCircle2 } from 'lucide-react'
 
 interface OCRResult {
   vendor_name?: string
@@ -35,7 +35,7 @@ export default function AIInvoiceScanner({ onScanComplete }: AIInvoiceScannerPro
     mutationFn: async (file: File) => {
       // Upload to Supabase Storage
       const fileName = `${Date.now()}_${file.name}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('invoices')
         .upload(fileName, file)
 

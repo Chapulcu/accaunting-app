@@ -25,7 +25,6 @@ type CompanyType = 'customer' | 'supplier' | 'both'
 type CurrencyCode = 'TRY' | 'USD' | 'EUR' | 'GBP'
 type Company = Database['public']['Tables']['companies']['Row']
 type CompanyInsert = Database['public']['Tables']['companies']['Insert']
-type CompanyUpdate = Database['public']['Tables']['companies']['Update']
 
 interface CompanyFormData {
   name: string
@@ -91,7 +90,7 @@ export default function Customers() {
         return trimmed ? trimmed : null
       }
 
-      const basePayload: CompanyUpdate = {
+      const basePayload = {
         name: data.name.trim(),
         email: normalize(data.email),
         phone: normalize(data.phone),
@@ -188,6 +187,7 @@ export default function Customers() {
       email: '',
       phone: '',
       tax_number: '',
+      tax_office: '',
       address: '',
       type: 'customer',
       currency: 'TRY',

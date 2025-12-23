@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
-import { RefreshCw, TrendingUp, DollarSign, Calendar, Search, Grid3x3, List, ArrowUpDown } from 'lucide-react'
+import { RefreshCw, TrendingUp, Calendar, Search, Grid3x3, List, ArrowUpDown } from 'lucide-react'
 import { fetchTCMBRates, saveExchangeRates, getLatestRates } from '@/services/exchangeRate'
 import Tooltip from '@/components/Tooltip'
 

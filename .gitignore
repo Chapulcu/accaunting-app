@@ -25,6 +25,7 @@ dist-ssr
 
 # Environment variables
 .env
+.env.supabase
 .env.local
 .env.production
 .env.backup

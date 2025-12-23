@@ -79,7 +79,17 @@ export default function Payments() {
 
       const { data, error } = await query
       if (error) throw error
-      return data as Payment[]
+      
+      // Transform data to handle array responses from joins
+      return (data as any[]).map(payment => ({
+        ...payment,
+        invoices: payment.invoices ? {
+          ...payment.invoices,
+          companies: Array.isArray(payment.invoices.companies) 
+            ? payment.invoices.companies[0] 
+            : payment.invoices.companies
+        } : null
+      })) as Payment[]
     },
   })
 
@@ -97,7 +107,7 @@ export default function Payments() {
 
       // Get paid amounts for each invoice
       const invoicesWithPayments = await Promise.all(
-        (data as Invoice[]).map(async (invoice) => {
+        (data as any[]).map(async (invoice) => {
           const { data: paidData } = await supabase.rpc('get_invoice_paid_amount', {
             invoice_id_param: invoice.id,
           })
@@ -105,13 +115,14 @@ export default function Payments() {
           const paidAmount = paidData || 0
           return {
             ...invoice,
+            companies: Array.isArray(invoice.companies) ? invoice.companies[0] : invoice.companies,
             paid_amount: paidAmount,
             remaining_amount: invoice.total_amount - paidAmount,
-          }
+          } as Invoice
         })
       )
 
-      return invoicesWithPayments.filter((inv) => inv.remaining_amount > 0)
+      return invoicesWithPayments.filter((inv) => (inv.remaining_amount ?? 0) > 0)
     },
   })
 

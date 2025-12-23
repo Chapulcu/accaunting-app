@@ -13,9 +13,7 @@ import {
   AlertCircle,
   Eye,
   Trash2,
-  Download,
   RotateCcw,
-  Filter,
   TrendingUp,
   Search,
 } from 'lucide-react'
@@ -532,6 +530,8 @@ export default function OCRHistory() {
                   currentPage={currentPage}
                   totalPages={totalPages}
                   onPageChange={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={historyData.totalCount}
                 />
               </div>
             )}

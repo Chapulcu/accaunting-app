@@ -55,18 +55,23 @@ export default function IncomeStatement() {
         .eq('user_id', user.id)
         .gte('expense_date', startDate)
         .lte('expense_date', endDate)
-        .eq('status', 'approved')
+        //.eq('status', 'approved') // Removed status check as it might not exist on expenses table
+
+      const getCategoryName = (e: any) => {
+        const cat = Array.isArray(e.expense_categories) ? e.expense_categories[0] : e.expense_categories
+        return cat?.name || ''
+      }
 
       const operatingExpenses = expenses?.filter(e =>
-        ['Kira', 'Elektrik', 'Su', 'İnternet', 'Ofis Malzemeleri'].includes(e.expense_categories?.name || '')
+        ['Kira', 'Elektrik', 'Su', 'İnternet', 'Ofis Malzemeleri'].includes(getCategoryName(e))
       ).reduce((sum, e) => sum + e.amount, 0) || 0
 
       const administrativeExpenses = expenses?.filter(e =>
-        ['Maaş', 'Danışmanlık'].includes(e.expense_categories?.name || '')
+        ['Maaş', 'Danışmanlık'].includes(getCategoryName(e))
       ).reduce((sum, e) => sum + e.amount, 0) || 0
 
       const otherExpenses = expenses?.filter(e =>
-        !['Kira', 'Elektrik', 'Su', 'İnternet', 'Ofis Malzemeleri', 'Maaş', 'Danışmanlık'].includes(e.expense_categories?.name || '')
+        !['Kira', 'Elektrik', 'Su', 'İnternet', 'Ofis Malzemeleri', 'Maaş', 'Danışmanlık'].includes(getCategoryName(e))
       ).reduce((sum, e) => sum + e.amount, 0) || 0
 
       const totalRevenue = sales

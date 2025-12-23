@@ -13,7 +13,6 @@ import {
   Download,
   RefreshCw,
   Calendar,
-  Filter,
   Inbox,
 } from 'lucide-react'
 import Tooltip from '@/components/Tooltip'
@@ -77,7 +76,7 @@ export default function EInvoices() {
     mutationFn: async (eInvoiceUuid: string) => {
       return await EInvoiceService.refreshStatus(eInvoiceUuid)
     },
-    onSuccess: (_, uuid) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['e-invoices'] })
       toast.success('Durum güncellendi')
     },

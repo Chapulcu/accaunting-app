@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactElement } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
@@ -99,7 +99,7 @@ export default function UsersManagement() {
     user: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
   }
 
-  const roleIcons: Record<string, JSX.Element> = {
+  const roleIcons: Record<string, ReactElement> = {
     admin: <Shield className="w-4 h-4" />,
     manager: <Users className="w-4 h-4" />,
     accountant: <CheckCircle className="w-4 h-4" />,

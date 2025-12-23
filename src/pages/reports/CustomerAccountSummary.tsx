@@ -57,13 +57,14 @@ export default function CustomerAccountSummary() {
       // Müşteri bazlı toplamları hesapla
       const customerMap = new Map<number, CustomerBalance>()
 
-      invoices.forEach(inv => {
-        if (!inv.companies || !inv.customer_id) return
+      invoices.forEach((inv: any) => {
+        const company = Array.isArray(inv.companies) ? inv.companies[0] : inv.companies
+        if (!company || !inv.customer_id) return
 
         const customerId = inv.customer_id
         const existing = customerMap.get(customerId) || {
           customer_id: customerId,
-          customer_name: inv.companies.name || 'Bilinmeyen',
+          customer_name: company.name || 'Bilinmeyen',
           total_invoiced: 0,
           total_paid: 0,
           balance: 0,

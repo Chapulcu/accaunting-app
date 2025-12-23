@@ -137,18 +137,18 @@ export default function Dashboard() {
         return { ay: monthName, gelir: monthRevenue, gider: monthExpenses }
       })
 
-      const recentInvoiceRecords: DashboardRecentInvoice[] = (recentInvoices ?? []).map((invoice) => ({
+      const recentInvoiceRecords: DashboardRecentInvoice[] = (recentInvoices ?? []).map((invoice: any) => ({
         invoice_number: invoice.invoice_number,
         total_amount: Number(invoice.total_amount ?? 0),
         invoice_date: invoice.invoice_date ?? invoice.created_at,
-        companies: invoice.companies ?? null,
+        companies: Array.isArray(invoice.companies) ? invoice.companies[0] : invoice.companies,
       }))
 
-      const recentExpenseRecords: DashboardRecentExpense[] = (recentExpenses ?? []).map((expense) => ({
+      const recentExpenseRecords: DashboardRecentExpense[] = (recentExpenses ?? []).map((expense: any) => ({
         description: expense.description ?? null,
         amount: Number(expense.amount ?? 0),
         created_at: expense.created_at,
-        expense_categories: expense.expense_categories ?? null,
+        expense_categories: Array.isArray(expense.expense_categories) ? expense.expense_categories[0] : expense.expense_categories,
       }))
 
       const result: DashboardStats = {

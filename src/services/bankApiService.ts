@@ -99,7 +99,7 @@ export class MockBankProvider extends BankApiProvider {
     }
   }
 
-  async getBalance(accountNumber: string): Promise<BankBalance> {
+  async getBalance(_accountNumber: string): Promise<BankBalance> {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
     return {
@@ -111,7 +111,7 @@ export class MockBankProvider extends BankApiProvider {
   }
 
   async getTransactions(
-    accountNumber: string,
+    _accountNumber: string,
     startDate: Date,
     endDate: Date
   ): Promise<BankTransaction[]> {
@@ -141,7 +141,7 @@ export class MockBankProvider extends BankApiProvider {
     return transactions
   }
 
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string; expiresIn: number }> {
+  async refreshToken(_refreshToken: string): Promise<{ accessToken: string; expiresIn: number }> {
     return {
       accessToken: 'mock_refreshed_token_' + Date.now(),
       expiresIn: 3600,
