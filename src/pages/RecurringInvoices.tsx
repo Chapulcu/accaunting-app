@@ -56,10 +56,10 @@ const statusLabels: Record<RecurringStatus, string> = {
 }
 
 const statusColors: Record<RecurringStatus, string> = {
-  active: 'bg-green-100 text-green-800',
-  paused: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-blue-100 text-blue-800',
-  cancelled: 'bg-red-100 text-red-800',
+  active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  paused: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+  completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
 }
 
 export default function RecurringInvoices() {
@@ -242,7 +242,7 @@ export default function RecurringInvoices() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Yükleniyor...</div>
+        <div className="text-gray-500 dark:text-slate-400">Yükleniyor...</div>
       </div>
     )
   }
@@ -251,10 +251,12 @@ export default function RecurringInvoices() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Tekrarlayan Faturalar</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Tekrarlayan Faturalar
+        </h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+          className="btn-primary flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Yeni Tekrarlayan Fatura
@@ -263,26 +265,28 @@ export default function RecurringInvoices() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-500">Toplam</div>
-          <div className="text-2xl font-bold text-gray-900">
+        <div className="card">
+          <div className="text-sm text-gray-500 dark:text-slate-400">Toplam</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">
             {recurringInvoices?.length || 0}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-500">Aktif</div>
+        <div className="card">
+          <div className="text-sm text-gray-500 dark:text-slate-400">Aktif</div>
           <div className="text-2xl font-bold text-green-600">
             {recurringInvoices?.filter((r) => r.status === 'active').length || 0}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-500">Durduruldu</div>
+        <div className="card">
+          <div className="text-sm text-gray-500 dark:text-slate-400">Durduruldu</div>
           <div className="text-2xl font-bold text-yellow-600">
             {recurringInvoices?.filter((r) => r.status === 'paused').length || 0}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-500">Oluşturulan Faturalar</div>
+        <div className="card">
+          <div className="text-sm text-gray-500 dark:text-slate-400">
+            Oluşturulan Faturalar
+          </div>
           <div className="text-2xl font-bold text-blue-600">
             {recurringInvoices?.reduce((sum, r) => sum + r.total_generated, 0) || 0}
           </div>
@@ -290,40 +294,43 @@ export default function RecurringInvoices() {
       </div>
 
       {/* Table */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="card p-0 overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+          <thead className="bg-gray-50 dark:bg-slate-800">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                 Müşteri
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                 Periyot
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                 Sonraki Fatura
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                 Oluşturulan
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                 Durum
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                 İşlemler
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
             {recurringInvoices?.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-gray-50">
+              <tr
+                key={invoice.id}
+                className="hover:bg-gray-50 dark:hover:bg-slate-800/50"
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
                     {invoice.companies.name}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
+                  <div className="text-sm text-gray-900 dark:text-slate-100">
                     {invoice.interval_count > 1
                       ? `${invoice.interval_count} `
                       : ''}
@@ -331,12 +338,14 @@ export default function RecurringInvoices() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
+                  <div className="text-sm text-gray-900 dark:text-slate-100">
                     {new Date(invoice.next_invoice_date).toLocaleDateString('tr-TR')}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{invoice.total_generated}</div>
+                  <div className="text-sm text-gray-900 dark:text-slate-100">
+                    {invoice.total_generated}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -352,7 +361,7 @@ export default function RecurringInvoices() {
                     {(invoice.status === 'active' || invoice.status === 'paused') && (
                       <button
                         onClick={() => handleToggleStatus(invoice.id, invoice.status)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                         title={
                           invoice.status === 'active' ? 'Duraklat' : 'Aktifleştir'
                         }
@@ -366,7 +375,7 @@ export default function RecurringInvoices() {
                     )}
                     <button
                       onClick={() => handleDelete(invoice.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                       title="Sil"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -379,7 +388,7 @@ export default function RecurringInvoices() {
         </table>
 
         {(!recurringInvoices || recurringInvoices.length === 0) && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-slate-400">
             Henüz tekrarlayan fatura yok
           </div>
         )}
@@ -388,19 +397,21 @@ export default function RecurringInvoices() {
       {/* Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 my-8">
-            <h2 className="text-xl font-bold mb-4">Yeni Tekrarlayan Fatura</h2>
+          <div className="glass-strong rounded-lg p-6 w-full max-w-4xl mx-4 my-8">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              Yeni Tekrarlayan Fatura
+            </h2>
 
             <div className="space-y-4 max-h-[70vh] overflow-y-auto">
               {/* Company */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                   Müşteri *
                 </label>
                 <select
                   value={selectedCompanyId || ''}
                   onChange={(e) => setSelectedCompanyId(Number(e.target.value))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="input-field"
                 >
                   <option value="">Seçiniz</option>
                   {companies?.map((company) => (
@@ -414,7 +425,7 @@ export default function RecurringInvoices() {
               {/* Interval */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                     Periyot Tipi *
                   </label>
                   <select
@@ -422,7 +433,7 @@ export default function RecurringInvoices() {
                     onChange={(e) =>
                       setIntervalType(e.target.value as RecurrenceInterval)
                     }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="input-field"
                   >
                     {Object.entries(intervalLabels).map(([key, label]) => (
                       <option key={key} value={key}>
@@ -432,7 +443,7 @@ export default function RecurringInvoices() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                     Her Kaç Periyotta *
                   </label>
                   <input
@@ -440,7 +451,7 @@ export default function RecurringInvoices() {
                     min="1"
                     value={intervalCount}
                     onChange={(e) => setIntervalCount(Number(e.target.value))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="input-field"
                   />
                 </div>
               </div>
@@ -448,51 +459,51 @@ export default function RecurringInvoices() {
               {/* Dates */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                     Başlangıç Tarihi *
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="input-field"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                     Bitiş Tarihi (opsiyonel)
                   </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="input-field"
                   />
                 </div>
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                   Notlar
                 </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="input-field"
                 />
               </div>
 
               {/* Items */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
                     Kalemler *
                   </label>
                   <button
                     onClick={handleAddItem}
-                    className="text-sm text-indigo-600 hover:text-indigo-800"
+                    className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
                   >
                     + Kalem Ekle
                   </button>
@@ -502,7 +513,7 @@ export default function RecurringInvoices() {
                   {items.map((item, index) => (
                     <div
                       key={index}
-                      className="grid grid-cols-12 gap-2 items-end border p-2 rounded"
+                      className="grid grid-cols-12 gap-2 items-end border border-gray-200 dark:border-slate-700 p-2 rounded"
                     >
                       <div className="col-span-4">
                         <input
@@ -512,7 +523,7 @@ export default function RecurringInvoices() {
                           onChange={(e) =>
                             handleItemChange(index, 'description', e.target.value)
                           }
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="input-field px-2 py-1 text-sm"
                         />
                       </div>
                       <div className="col-span-2">
@@ -523,7 +534,7 @@ export default function RecurringInvoices() {
                           onChange={(e) =>
                             handleItemChange(index, 'quantity', Number(e.target.value))
                           }
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="input-field px-2 py-1 text-sm"
                         />
                       </div>
                       <div className="col-span-2">
@@ -538,7 +549,7 @@ export default function RecurringInvoices() {
                               Number(e.target.value)
                             )
                           }
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="input-field px-2 py-1 text-sm"
                         />
                       </div>
                       <div className="col-span-1">
@@ -549,7 +560,7 @@ export default function RecurringInvoices() {
                           onChange={(e) =>
                             handleItemChange(index, 'tax_rate', Number(e.target.value))
                           }
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="input-field px-2 py-1 text-sm"
                         />
                       </div>
                       <div className="col-span-2">
@@ -564,13 +575,13 @@ export default function RecurringInvoices() {
                               Number(e.target.value)
                             )
                           }
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="input-field px-2 py-1 text-sm"
                         />
                       </div>
                       <div className="col-span-1">
                         <button
                           onClick={() => handleRemoveItem(index)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -585,14 +596,14 @@ export default function RecurringInvoices() {
             <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="btn-secondary"
               >
                 İptal
               </button>
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400"
+                className="btn-primary disabled:bg-gray-400"
               >
                 {createMutation.isPending ? 'Kaydediliyor...' : 'Kaydet'}
               </button>

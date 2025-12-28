@@ -30,6 +30,129 @@ Bu dosya, muhasebe uygulamasında geliştirilmekte olan özellikleri takip etmek
 - [x] Sayfalama (Pagination)
 - [x] Form Validasyonu
 
+## 🎯 Son Tamamlanan Özellikler (v1.4.0)
+
+### 7. ✅ AI OCR ile Fatura/Fiş Okuma
+**Durum:** 🟢 Tamamlandı
+**Öncelik:** Yüksek
+**Tamamlanma Tarihi:** 2025-12
+
+**Tamamlanan Alt Görevler:**
+- [x] GPT-4 Vision API entegrasyonu
+- [x] ai-ocr-processor Edge Function
+- [x] AIInvoiceScanner bileşeni
+- [x] BulkOCRProcessor toplu işleme
+- [x] ai_training_data tablosu
+- [x] OCR History sayfası
+- [x] Varlık tipi filtreleme (invoice/expense)
+- [x] OCR istatistikleri dashboard
+- [x] OCR verilerini yeniden kullanma
+- [x] AI feedback tracking
+
+**Oluşturulan Dosyalar:**
+- `supabase/functions/ai-ocr-processor/index.ts`
+- `src/components/ai/AIInvoiceScanner.tsx`
+- `src/components/ai/BulkOCRProcessor.tsx`
+- `src/pages/OCRHistory.tsx`
+- Migration dosyaları: ai_training_data, ai_document_embeddings
+
+---
+
+### 8. ✅ AI Chatbot & Predictions
+**Durum:** 🟢 Tamamlandı
+**Öncelik:** Orta
+**Tamamlanma Tarihi:** 2025-12
+
+**Tamamlanan Alt Görevler:**
+- [x] ai-chatbot Edge Function
+- [x] ai-predictions Edge Function
+- [x] ai-categorization Edge Function
+- [x] AIChatWidget bileşeni
+- [x] Dashboard widgets (CashFlowPredictionWidget)
+- [x] ai_chat_history tablosu
+- [x] ai_predictions tablosu
+- [x] ai_categorization_rules tablosu
+- [x] OpenAI API key yönetimi (set-openai-key)
+- [x] pgvector extension (semantic search)
+
+**Oluşturulan Dosyalar:**
+- `supabase/functions/ai-chatbot/index.ts`
+- `supabase/functions/ai-predictions/index.ts`
+- `supabase/functions/ai-categorization/index.ts`
+- `supabase/functions/set-openai-key/index.ts`
+- `src/components/ai/AIChatWidget.tsx`
+- `src/components/dashboard/CashFlowPredictionWidget.tsx`
+
+---
+
+### 9. ✅ n8n Workflow Automation
+**Durum:** 🟢 Tamamlandı
+**Öncelik:** Yüksek
+**Tamamlanma Tarihi:** 2025-12
+
+**Tamamlanan Alt Görevler:**
+- [x] n8n-workflow-manager Edge Function (CRUD)
+- [x] n8n-webhook-handler Edge Function
+- [x] n8n_workflow_configs tablosu
+- [x] N8nWorkflows yönetim sayfası
+- [x] WorkflowCreateModal
+- [x] WorkflowDetailsModal
+- [x] N8nWorkflowStatusWidget
+- [x] 5 workflow tipi (approval, reminder, recurring, sync, e-invoice)
+- [x] Webhook ve schedule trigger desteği
+- [x] Execution statistics tracking
+
+**Oluşturulan Dosyalar:**
+- `supabase/functions/n8n-workflow-manager/index.ts`
+- `supabase/functions/n8n-webhook-handler/index.ts`
+- `src/pages/N8nWorkflows.tsx`
+- `src/components/automation/WorkflowCreateModal.tsx`
+- `src/components/automation/WorkflowDetailsModal.tsx`
+- `src/components/dashboard/N8nWorkflowStatusWidget.tsx`
+
+---
+
+### 10. ✅ Multi-Tenant Organization & User Management
+**Durum:** 🟢 Tamamlandı
+**Öncelik:** Yüksek
+**Tamamlanma Tarihi:** 2025-12
+
+**Tamamlanan Alt Görevler:**
+- [x] organizations tablosu
+- [x] organization_members tablosu
+- [x] Multi-tenancy RLS politikaları
+- [x] Organizations yönetim sayfası
+- [x] UsersManagement sayfası (admin only)
+- [x] Rol düzenleme fonksiyonları
+- [x] User activation/deactivation
+- [x] Organization membership yönetimi
+- [x] organizationService.ts servisi
+
+**Oluşturulan Dosyalar:**
+- `src/pages/Organizations.tsx`
+- `src/pages/UsersManagement.tsx`
+- `src/services/organizationService.ts`
+- Migration dosyaları: organizations, organization_members
+
+---
+
+### 11. ✅ AI Feedback Analytics
+**Durum:** 🟢 Tamamlandı
+**Öncelik:** Orta
+**Tamamlanma Tarihi:** 2025-12
+
+**Tamamlanan Alt Görevler:**
+- [x] AIFeedbackAnalytics sayfası
+- [x] OCR accuracy tracking
+- [x] Feedback istatistikleri
+- [x] ai_training_data tablosu genişletme (feedback_rating, is_correct)
+- [x] Dashboard charts ve analytics
+
+**Oluşturulan Dosyalar:**
+- `src/pages/AIFeedbackAnalytics.tsx`
+
+---
+
 ## 🔄 Geliştirme Aşamasında
 
 ### 1. ✅ PDF Fatura Oluşturma
@@ -212,12 +335,20 @@ Bu dosya, muhasebe uygulamasında geliştirilmekte olan özellikleri takip etmek
 4. **Bağımlılıklar:** Başka özelliklere mi bağlı?
 
 ### Versiyon Hedefleri
-- **v1.2.0** – PDF fatura, email altyapısı, ödeme yönetimi (tamamlandı)
-- **v1.3.0** – Gelişmiş raporlar, tekrarlayan faturalar, stok modülü (tamamlandı — cron & gelişmiş stok işlevleri beklemede)
-- **v1.4.0** – E-Fatura entegratörleri + banka entegrasyonları (planlanıyor)
-- **v2.0.0** – Mobil/PWA ve gelişmiş otomasyon (planlanıyor)
+- **v1.2.0** – PDF fatura, email altyapısı, ödeme yönetimi ✅ (tamamlandı)
+- **v1.3.0** – Gelişmiş raporlar, tekrarlayan faturalar, stok modülü ✅ (tamamlandı)
+- **v1.4.0** – AI OCR, AI Chatbot, n8n Automation, Multi-tenant Organizations ✅ (tamamlandı)
+- **v1.5.0** – Banka entegrasyonları, E-Fatura GİB entegrasyonu (planlanıyor)
+- **v2.0.0** – Mobil/PWA ve gelişmiş AI modelleri (planlanıyor)
+
+### Teknik Borç ve İyileştirmeler
+- [ ] RecurringInvoices cron job otomasyonu (n8n ile)
+- [ ] AI OCR toplu işleme performans iyileştirmeleri
+- [ ] OCR doğruluk oranı tracking algoritmaları
+- [ ] AI chat context window genişletme
+- [ ] pgvector semantic search iyileştirmeleri
 
 ---
 
-**Son Güncelleme:** 2025-01-XX
+**Son Güncelleme:** 2025-12-28
 **Geliştirici:** Talip Akhan

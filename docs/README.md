@@ -1,7 +1,7 @@
 # 📚 Muhasebe Uygulaması - Kapsamlı Dokümantasyon
 
-**Versiyon:** 1.3.0
-**Son Güncelleme:** 2025-01-18
+**Versiyon:** 1.4.0
+**Son Güncelleme:** 2025-12-28
 **Geliştirici:** Talip Akhan
 
 ---
@@ -41,6 +41,13 @@ Bu uygulama, küçük ve orta ölçekli işletmeler için tasarlanmış, modern 
 - ✅ Rol tabanlı erişim kontrolü (RBAC)
 - ✅ E-Fatura altyapısı
 - ✅ Dark mode desteği
+- ✅ AI OCR ile fatura/fiş okuma (GPT-4 Vision)
+- ✅ AI Chatbot (muhasebe asistanı)
+- ✅ AI tahminleme (nakit akışı, gelir)
+- ✅ n8n workflow automation entegrasyonu
+- ✅ Multi-tenant organization yapısı
+- ✅ Kullanıcı yönetimi ve rol düzenleme
+- ✅ OCR geçmişi ve AI eğitim verisi takibi
 
 ---
 
@@ -62,9 +69,12 @@ Bu uygulama, küçük ve orta ölçekli işletmeler için tasarlanmış, modern 
   - PostgreSQL veritabanı
   - JWT authentication
   - Row Level Security (RLS)
-  - Edge Functions
+  - Edge Functions (9 adet)
   - Real-time subscriptions
+  - pgvector extension (semantic search)
 - **PostgreSQL** - İlişkisel veritabanı
+- **OpenAI GPT-4 Vision** - OCR ve AI özellikleri
+- **n8n** - Workflow automation platform
 
 ### Veri İşleme & Export
 - **jsPDF + jspdf-autotable** - PDF oluşturma
@@ -90,9 +100,16 @@ accounting-app/
 │   │   ├── ProtectedRoute.tsx
 │   │   ├── LoadingSpinner.tsx
 │   │   ├── Pagination.tsx
-│   │   └── Tooltip.tsx
+│   │   ├── Tooltip.tsx
+│   │   ├── ai/              # AI bileşenleri
+│   │   │   ├── AIChatWidget.tsx
+│   │   │   ├── AIInvoiceScanner.tsx
+│   │   │   └── BulkOCRProcessor.tsx
+│   │   └── automation/      # Otomasyon bileşenleri
+│   │       ├── WorkflowCreateModal.tsx
+│   │       └── WorkflowDetailsModal.tsx
 │   │
-│   ├── pages/               # Sayfa bileşenleri (23 sayfa)
+│   ├── pages/               # Sayfa bileşenleri (30+ sayfa)
 │   │   ├── Dashboard.tsx
 │   │   ├── Invoices.tsx, Payments.tsx
 │   │   ├── RecurringInvoices.tsx
@@ -110,6 +127,11 @@ accounting-app/
 │   │   ├── EmailHistory.tsx
 │   │   ├── Settings.tsx
 │   │   ├── RolesPermissions.tsx
+│   │   ├── UsersManagement.tsx
+│   │   ├── Organizations.tsx
+│   │   ├── OCRHistory.tsx
+│   │   ├── AIFeedbackAnalytics.tsx
+│   │   ├── N8nWorkflows.tsx
 │   │   └── ...
 │   │
 │   ├── contexts/            # React Context
@@ -121,7 +143,8 @@ accounting-app/
 │   │   ├── approvalService.ts
 │   │   ├── bankApiService.ts
 │   │   ├── exchangeRate.ts
-│   │   └── email.ts
+│   │   ├── email.ts
+│   │   └── organizationService.ts
 │   │
 │   ├── lib/                 # Yardımcı fonksiyonlar
 │   │   ├── supabase.ts      # Supabase client
@@ -142,10 +165,17 @@ accounting-app/
 │   └── main.tsx             # Entry point
 │
 ├── supabase/
-│   ├── migrations/          # Veritabanı migration'ları (26 dosya)
-│   ├── functions/           # Edge Functions
+│   ├── migrations/          # Veritabanı migration'ları (35+ dosya)
+│   ├── functions/           # Edge Functions (9 adet)
+│   │   ├── ai-ocr-processor/
+│   │   ├── ai-categorization/
+│   │   ├── ai-chatbot/
+│   │   ├── ai-predictions/
 │   │   ├── fetch-tcmb-rates/
-│   │   └── send-email/
+│   │   ├── send-email/
+│   │   ├── n8n-workflow-manager/
+│   │   ├── n8n-webhook-handler/
+│   │   └── set-openai-key/
 │   └── scripts/             # Yardımcı scriptler
 │
 ├── docs/                    # Dokümantasyon
@@ -156,12 +186,14 @@ accounting-app/
 ### Veritabanı Yapısı
 
 #### Ana Tablolar
+
+**Temel Muhasebe:**
 1. **profiles** - Kullanıcı profilleri ve rolleri
 2. **companies** - Cari hesaplar (müşteri/tedarikçi)
 3. **accounts** & **chart_of_accounts** - Hesap planı
 4. **invoices** & **invoice_items** - Faturalar
 5. **payments** - Ödemeler
-6. **recurring_invoices** - Tekrarlayan faturalar
+6. **recurring_invoices** & **recurring_invoice_items** - Tekrarlayan faturalar
 7. **products** & **product_categories** - Ürün yönetimi
 8. **expenses** & **expense_categories** - Gider takibi
 9. **journal_entries** & **journal_entry_lines** - Yevmiye kayıtları
@@ -170,14 +202,32 @@ accounting-app/
 12. **exchange_rates** & **tax_rates** - Döviz ve KDV
 13. **email_history** - E-posta kayıtları
 14. **e_invoice_settings** & **e_invoices** - E-Fatura
-15. **roles**, **permissions**, **role_permissions** - RBAC
-16. **approval_workflows** - Onay süreçleri
-17. **app_settings** - Uygulama ayarları
+15. **reminders** - Ödeme hatırlatmaları
 
-#### Güvenlik
+**RBAC & Organization:**
+16. **organizations** - Multi-tenant organizasyon yönetimi
+17. **organization_members** - Üyelik ve roller
+18. **roles** & **permissions** & **role_permissions** - Rol tabanlı izinler
+19. **approval_workflows** & **approval_requests** & **approval_history** - Onay süreçleri
+
+**AI & Automation:**
+20. **ai_training_data** - OCR ve AI eğitim verileri
+21. **ai_predictions** - AI tahminleri
+22. **ai_categorization_rules** - Otomatik kategorizasyon kuralları
+23. **ai_chat_history** - AI sohbet geçmişi
+24. **ai_document_embeddings** - pgvector embedding'leri
+25. **n8n_workflow_configs** - n8n workflow yapılandırmaları
+
+**Sistem:**
+26. **app_settings** - Uygulama ayarları ve feature flags
+
+#### Güvenlik ve Özellikler
 - **Row Level Security (RLS):** Her kullanıcı sadece kendi verilerine erişir
 - **JWT Authentication:** Güvenli token tabanlı kimlik doğrulama
 - **Otomatik Trigger'lar:** Veri bütünlüğü ve hesaplamalar
+- **pgvector Extension:** Semantic search ve AI embedding'leri
+- **Multi-tenancy:** Organization-based veri izolasyonu
+- **Feature Flags:** app_settings ile özellik kontrolü
 
 ### State Yönetimi
 
@@ -222,6 +272,11 @@ accounting-app/
 ├── /bank-accounts
 ├── /roles-permissions
 ├── /approval-workflows
+├── /users-management (admin only)
+├── /organizations
+├── /ocr-history
+├── /ai-feedback-analytics
+├── /n8n-workflows
 └── /settings
 ```
 
@@ -491,6 +546,17 @@ WHERE u.email = 'admin@accounting.com';
 - ✅ Özelleştirilebilir izinler
 - ✅ Onay iş akışları
 
+#### AI ve Otomasyon
+- ✅ GPT-4 Vision OCR (fatura/fiş okuma)
+- ✅ AI Chatbot (muhasebe asistanı)
+- ✅ AI tahminleme (nakit akışı, gelir)
+- ✅ Otomatik gider kategorizasyonu
+- ✅ OCR geçmişi ve eğitim verisi
+- ✅ AI feedback analytics
+- ✅ n8n workflow automation
+- ✅ Webhook-based triggers
+- ✅ Semantic search (pgvector)
+
 #### Kullanıcı Deneyimi
 - ✅ Dark mode
 - ✅ Responsive tasarım
@@ -498,26 +564,35 @@ WHERE u.email = 'admin@accounting.com';
 - ✅ Loading state'leri
 - ✅ Pagination
 - ✅ Filtreleme ve arama
+- ✅ Dashboard widgets (AI, n8n, OCR)
+
+#### Organizasyon ve Kullanıcı Yönetimi
+- ✅ Multi-tenant organization yapısı
+- ✅ Kullanıcı yönetimi ve rol düzenleme
+- ✅ Organization membership yönetimi
+- ✅ Rol bazlı menü izinleri
 
 ### Planlanan Özellikler
 
 #### Kısa Vadeli
 - ⏳ Tekrarlayan fatura cron job otomasyonu
-- ⏳ E-posta Edge Function deployment
-- ⏳ Makbuz yükleme
-- ⏳ Onay süreçleri UI
+- ⏳ AI OCR toplu işleme iyileştirmeleri
+- ⏳ n8n workflow örnekleri ve şablonları
+- ⏳ Makbuz yükleme ve OCR
 
 #### Orta Vadeli
-- ⏳ Banka entegrasyonu (PSD2)
+- ⏳ Banka entegrasyonu (PSD2/Open Banking)
 - ⏳ Gelişmiş stok yönetimi (FIFO/LIFO)
 - ⏳ Mobil PWA
-- ⏳ Çoklu şirket yönetimi
+- ⏳ AI chat için context iyileştirmeleri
+- ⏳ OCR doğruluk oranı tracking
 
 #### Uzun Vadeli
 - ⏳ GİB E-Fatura entegrasyonu
-- ⏳ AI destekli OCR
-- ⏳ Nakit akışı tahmini
-- ⏳ WhatsApp entegrasyonu
+- ⏳ Gelişmiş AI modelleri (fine-tuning)
+- ⏳ Multi-currency advanced features
+- ⏳ WhatsApp/SMS entegrasyonu
+- ⏳ Advanced analytics & BI dashboard
 
 ---
 
@@ -1143,6 +1218,35 @@ Bu yazılım MIT Lisansı altında lisanslanmıştır.
 
 ---
 
-**Son Güncelleme:** 2025-01-18
-**Versiyon:** 1.3.0
+**Son Güncelleme:** 2025-12-28
+**Versiyon:** 1.4.0
 **Durum:** ✅ Aktif Geliştirme
+
+## 🆕 v1.4.0 Yenilikler
+
+### AI Özellikleri
+- **GPT-4 Vision OCR**: Fatura ve fiş görsellerini otomatik okuma
+- **AI Chatbot**: Muhasebe sorularınıza anında yanıt
+- **AI Predictions**: Nakit akışı ve gelir tahminleme
+- **Auto Categorization**: Giderleri otomatik kategorize etme
+- **OCR History**: Tüm OCR işlemlerini izleme ve yeniden kullanma
+- **AI Feedback**: OCR doğruluğu takibi ve iyileştirme
+
+### Otomasyon
+- **n8n Integration**: Workflow automation desteği
+- **Workflow Manager**: 5 farklı workflow tipi (approval, reminder, recurring, sync, e-invoice)
+- **Webhook Triggers**: Otomatik tetikleme mekanizmaları
+- **Schedule Support**: Zamanlı görevler
+
+### Organizasyon ve Kullanıcı Yönetimi
+- **Multi-Tenant**: Organization bazlı veri izolasyonu
+- **User Management**: Admin kullanıcı yönetim paneli
+- **Role Editing**: Dinamik rol ve izin düzenleme
+- **Membership**: Organization üyelik kontrolü
+
+### Teknik İyileştirmeler
+- **pgvector**: Semantic search desteği
+- **9 Edge Function**: AI, automation ve integration servisleri
+- **35+ Migration**: Kapsamlı veritabanı şeması
+- **Feature Flags**: Özellik bazlı aktifleştirme
+- **Dark Mode Refinements**: RecurringInvoices ve diğer sayfalar için dark mode iyileştirmeleri
