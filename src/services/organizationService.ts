@@ -243,6 +243,13 @@ export const OrganizationService = {
     const user = (await supabase.auth.getUser()).data.user
     if (!user) throw new Error('User not authenticated')
 
+    // Generate a random token for the invitation
+    const token = crypto.randomUUID()
+
+    // Set expiration to 7 days from now
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 7)
+
     const { data, error } = await supabase
       .from('organization_invitations')
       .insert([{
@@ -251,8 +258,10 @@ export const OrganizationService = {
         role: inviteData.role,
         invitation_message: inviteData.invitation_message,
         invited_by: user.id,
+        token: token,
+        expires_at: expiresAt.toISOString(),
       }])
-      .select()
+      .select('*')
       .single()
 
     if (error) throw error
@@ -263,7 +272,7 @@ export const OrganizationService = {
   async getInvitations(organizationId: string): Promise<OrganizationInvitation[]> {
     const { data, error } = await supabase
       .from('organization_invitations')
-      .select('*')
+      .select('id, organization_id, email, role, token, status, expires_at, invitation_message, invited_by, created_at, updated_at')
       .eq('organization_id', organizationId)
       .order('created_at', { ascending: false })
 
@@ -277,10 +286,19 @@ export const OrganizationService = {
       .from('organization_invitations')
       .select('*')
       .eq('token', token)
-      .eq('status', 'pending')
       .single()
 
     if (error) return null
+
+    // Check if invitation is still valid
+    if (data.status !== 'pending' || data.expires_at < new Date().toISOString()) {
+      await supabase
+        .from('organization_invitations')
+        .update({ status: 'expired' })
+        .eq('token', token)
+      return null
+    }
+
     return data
   },
 
@@ -289,8 +307,15 @@ export const OrganizationService = {
     const user = (await supabase.auth.getUser()).data.user
     if (!user) throw new Error('User not authenticated')
 
-    const invitation = await this.getInvitationByToken(token)
-    if (!invitation) throw new Error('Invalid or expired invitation')
+    // Direct query with conditions to avoid stack depth issues
+    const { data: invitation, error: invitationError } = await supabase
+      .from('organization_invitations')
+      .select('*')
+      .eq('token', token)
+      .eq('status', 'pending')
+      .single()
+
+    if (invitationError || !invitation) throw new Error('Invalid or expired invitation')
 
     // Update invitation status
     await supabase
@@ -300,7 +325,7 @@ export const OrganizationService = {
         accepted_by: user.id,
         accepted_at: new Date().toISOString(),
       })
-      .eq('token', token)
+      .eq('id', invitation.id)
 
     // Create organization membership
     await supabase

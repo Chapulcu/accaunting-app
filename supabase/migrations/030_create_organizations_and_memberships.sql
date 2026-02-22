@@ -218,9 +218,11 @@ CREATE POLICY "Only owner can delete organization" ON organizations
 -- Members can view other members in their organization
 CREATE POLICY "Members can view organization members" ON organization_members
     FOR SELECT USING (
-        organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid() AND status = 'active'
+        EXISTS (
+            SELECT 1 FROM organization_members
+            WHERE organization_id = organization_members.organization_id
+              AND user_id = auth.uid()
+              AND status = 'active'
         )
     );
 
@@ -231,9 +233,10 @@ CREATE POLICY "System can insert members" ON organization_members
 -- Owner/Admin can update members
 CREATE POLICY "Owner/Admin can update members" ON organization_members
     FOR UPDATE USING (
-        organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid()
+        EXISTS (
+            SELECT 1 FROM organization_members
+            WHERE organization_id = organization_members.organization_id
+              AND user_id = auth.uid()
               AND role IN ('owner', 'admin')
               AND status = 'active'
         )
@@ -243,9 +246,10 @@ CREATE POLICY "Owner/Admin can update members" ON organization_members
 CREATE POLICY "Owner/Admin can remove members" ON organization_members
     FOR DELETE USING (
         user_id != auth.uid() -- Can't remove self
-        AND organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid()
+        AND EXISTS (
+            SELECT 1 FROM organization_members
+            WHERE organization_id = organization_members.organization_id
+              AND user_id = auth.uid()
               AND role IN ('owner', 'admin')
               AND status = 'active'
         )
@@ -255,18 +259,21 @@ CREATE POLICY "Owner/Admin can remove members" ON organization_members
 -- Members can view invitations in their organization
 CREATE POLICY "Members can view organization invitations" ON organization_invitations
     FOR SELECT USING (
-        organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid() AND status = 'active'
+        EXISTS (
+            SELECT 1 FROM organization_members
+            WHERE organization_id = organization_invitations.organization_id
+              AND user_id = auth.uid()
+              AND status = 'active'
         )
     );
 
 -- Owner/Admin can create invitations
 CREATE POLICY "Owner/Admin can create invitations" ON organization_invitations
     FOR INSERT WITH CHECK (
-        organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid()
+        EXISTS (
+            SELECT 1 FROM organization_members
+            WHERE organization_id = organization_invitations.organization_id
+              AND user_id = auth.uid()
               AND role IN ('owner', 'admin')
               AND status = 'active'
         )
@@ -275,9 +282,10 @@ CREATE POLICY "Owner/Admin can create invitations" ON organization_invitations
 -- Owner/Admin can update invitations
 CREATE POLICY "Owner/Admin can update invitations" ON organization_invitations
     FOR UPDATE USING (
-        organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid()
+        EXISTS (
+            SELECT 1 FROM organization_members
+            WHERE organization_id = organization_invitations.organization_id
+              AND user_id = auth.uid()
               AND role IN ('owner', 'admin')
               AND status = 'active'
         )
@@ -286,9 +294,10 @@ CREATE POLICY "Owner/Admin can update invitations" ON organization_invitations
 -- Owner/Admin can delete invitations
 CREATE POLICY "Owner/Admin can delete invitations" ON organization_invitations
     FOR DELETE USING (
-        organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid()
+        EXISTS (
+            SELECT 1 FROM organization_members
+            WHERE organization_id = organization_invitations.organization_id
+              AND user_id = auth.uid()
               AND role IN ('owner', 'admin')
               AND status = 'active'
         )
@@ -310,7 +319,7 @@ CREATE POLICY "Public can view invitation by token" ON organization_invitations
 CREATE OR REPLACE FUNCTION public.user_organization_id()
 RETURNS UUID AS $$
     SELECT organization_id
-    FROM public.organization_members
+    FROM organization_members
     WHERE user_id = auth.uid()
       AND status = 'active'
     LIMIT 1;
@@ -320,7 +329,7 @@ $$ LANGUAGE sql SECURITY DEFINER STABLE;
 CREATE OR REPLACE FUNCTION public.has_organization_role(required_role TEXT)
 RETURNS BOOLEAN AS $$
     SELECT EXISTS (
-        SELECT 1 FROM public.organization_members
+        SELECT 1 FROM organization_members
         WHERE user_id = auth.uid()
           AND status = 'active'
           AND role = required_role
@@ -331,7 +340,7 @@ $$ LANGUAGE sql SECURITY DEFINER STABLE;
 CREATE OR REPLACE FUNCTION public.has_any_organization_role(required_roles TEXT[])
 RETURNS BOOLEAN AS $$
     SELECT EXISTS (
-        SELECT 1 FROM public.organization_members
+        SELECT 1 FROM organization_members
         WHERE user_id = auth.uid()
           AND status = 'active'
           AND role = ANY(required_roles)
@@ -342,7 +351,7 @@ $$ LANGUAGE sql SECURITY DEFINER STABLE;
 CREATE OR REPLACE FUNCTION public.user_organization_role()
 RETURNS TEXT AS $$
     SELECT role
-    FROM public.organization_members
+    FROM organization_members
     WHERE user_id = auth.uid()
       AND status = 'active'
     LIMIT 1;
