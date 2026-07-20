@@ -108,7 +108,7 @@ ON CONFLICT (tier) DO UPDATE SET
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.subscriptions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     tier TEXT NOT NULL DEFAULT 'starter' CHECK (tier IN ('starter', 'professional', 'enterprise')),
     status TEXT NOT NULL DEFAULT 'trial' CHECK (status IN ('active', 'trial', 'cancelled', 'expired', 'past_due', 'unpaid')),
@@ -183,7 +183,7 @@ CREATE TRIGGER set_subscriptions_updated_at
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.feature_flags (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     feature_key TEXT NOT NULL,
     enabled BOOLEAN NOT NULL DEFAULT false,
@@ -231,7 +231,7 @@ CREATE TRIGGER set_feature_flags_updated_at
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.usage_tracking (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     metric_type TEXT NOT NULL CHECK (metric_type IN (
         'invoices',
